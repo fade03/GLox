@@ -18,14 +18,19 @@ func main() {
 	}
 
 	// 根据文法自动生成表达式的代码
-	err := defineAst(outputDir, "Expr", []string{
-		"Binary   : left Expr, operator *scanner.Token, right Expr",
-		"Grouping : expression Expr",
-		"Literal  : value interface{}",
-		"Unary    : operator *scanner.Token, right Expr",
-	})
+	//err := defineAst(outputDir, "Expr", []string{
+	//	"Binary   : left Expr, operator *scanner.Token, right Expr",
+	//	"Grouping : expression Expr",
+	//	"Literal  : value interface{}",
+	//	"Unary    : operator *scanner.Token, right Expr",
+	//})
+	//
+	//if err != nil {
+	//	log.Fatalln(err)
+	//}
 
-	if err != nil {
-		log.Fatalln(err)
-	}
+	_ = defineAst(outputDir, "Stmt", []string{
+		"ExprStmt : expr Expr",
+		"PrintStmt: expr Expr",
+	})
 }

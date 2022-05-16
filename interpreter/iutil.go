@@ -23,7 +23,7 @@ func doPlus(operator *scanner.Token, left, right interface{}) interface{} {
 	}
 
 	_, ok1 = left.(string)
-	_, ok2 = left.(string)
+	_, ok2 = right.(string)
 	if ok1 && ok2 {
 		return left.(string) + right.(string)
 	}

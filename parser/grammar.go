@@ -4,6 +4,35 @@ import (
 	"LoxGo/scanner"
 )
 
+// statement -> exprStmt | printStmt
+func (p *Parser) statement() Stmt {
+	if p.match(scanner.PRINT) {
+		return p.printStmt()
+	}
+
+	return p.exprStmt()
+}
+
+// exprStmt -> expression ";"
+func (p *Parser) exprStmt() Stmt {
+	// 解析expression的值
+	value := p.expression()
+	// 如果下一个Token是';'，则consume掉，否则就出现了语法错误
+	p.consume(scanner.SEMICOLON, "Expected ';' after value.")
+
+	return NewExprStmt(value)
+}
+
+// printStmt -> "print" expression ";"
+func (p *Parser) printStmt() Stmt {
+	// "print"已经在statement()中consume掉了（用于区分stmt的类型），所以这里不需要再match一遍
+	value := p.expression()
+	// consume ';'
+	p.consume(scanner.SEMICOLON, "Expected ';' after value.")
+
+	return NewPrintStmt(value)
+}
+
 func (p *Parser) expression() Expr {
 	return p.equality()
 }

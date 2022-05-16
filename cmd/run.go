@@ -58,7 +58,7 @@ func run(sc string) {
 	tokens := s.ScanTokens()
 
 	p := parser.NewParser(tokens)
-	expr := p.Parse()
+	stmts := p.Parse()
 
 	// 如果有语法错误直接返回，不把错误的信息带给解释器
 	if le.HadError {
@@ -66,7 +66,7 @@ func run(sc string) {
 	}
 
 	i := new(interpreter.Interpreter)
-	fmt.Println(i.Interpret(expr))
+	i.Interpret(stmts)
 
 	//fmt.Println(new(parser.Printer).Print(expr))
 

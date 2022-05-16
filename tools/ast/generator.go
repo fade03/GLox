@@ -10,9 +10,9 @@ import (
 func defineAst(outputDir string, baseName string, types []string) error {
 	f := outputDir + "/" + strings.ToLower(baseName) + ".go"
 	var buffer bytes.Buffer
-	buffer.WriteString("package ast\n\n")
+	buffer.WriteString("package parser\n\n")
 	buffer.WriteString("import \"LoxGo/scanner\"\n\n")
-	buffer.WriteString("type " + baseName + " interface" + " {\n\taccept(visitor Visitor)\n}\n\n")
+	buffer.WriteString("type " + baseName + " interface" + " {\n\tAccept(visitor Visitor) interface{}\n}\n\n")
 
 	for _, t := range types {
 		ts := strings.Split(t, ":")
@@ -46,5 +46,5 @@ func defineType(buffer *bytes.Buffer, typeName string, fieldList string) {
 func defineVisitor(buffer *bytes.Buffer, typeName string) {
 	receiver := string(typeName[0] + 32)
 	buffer.WriteString(fmt.Sprintf("func (%s *%s) accept(visitor Visitor) interface{} {\n", receiver, typeName))
-	buffer.WriteString(fmt.Sprintf("\treturn visitor.visit%s(%s)\n}\n\n", typeName, receiver))
+	buffer.WriteString(fmt.Sprintf("\treturn visitor.Visit%s(%s)\n}\n\n", typeName, receiver))
 }

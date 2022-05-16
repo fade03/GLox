@@ -5,7 +5,7 @@ import (
 	"bytes"
 )
 
-// Printer Visitor 子类之一，以特殊的形式打印出语法树上的节点
+// Printer ExprVisitor 子类之一，以特殊的形式打印出语法树上的节点
 type Printer struct {
 }
 
