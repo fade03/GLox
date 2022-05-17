@@ -65,7 +65,7 @@ func run(sc string) {
 		return
 	}
 
-	i := new(interpreter.Interpreter)
+	i := interpreter.NewInterpreter()
 	i.Interpret(stmts)
 
 	//fmt.Println(new(parser.Printer).Print(expr))

@@ -1,5 +1,7 @@
 package parser
 
+import "LoxGo/scanner"
+
 type Stmt interface {
 	Accept(visitor StmtVisitor)
 }
@@ -26,4 +28,17 @@ func NewPrintStmt(expr Expr) *PrintStmt {
 
 func (p *PrintStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitPrintStmt(p)
+}
+
+type VarDeclStmt struct {
+	Name        *scanner.Token
+	Initializer Expr
+}
+
+func NewVarDeclStmt(name *scanner.Token, initializer Expr) *VarDeclStmt {
+	return &VarDeclStmt{Name: name, Initializer: initializer}
+}
+
+func (v *VarDeclStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitVarDeclStmt(v)
 }

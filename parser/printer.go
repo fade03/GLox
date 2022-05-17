@@ -9,15 +9,15 @@ import (
 type Printer struct {
 }
 
-func (p *Printer) VisitBinary(expr *Binary) interface{} {
+func (p *Printer) VisitBinaryExpr(expr *Binary) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
-func (p *Printer) VisitGrouping(expr *Grouping) interface{} {
+func (p *Printer) VisitGroupingExpr(expr *Grouping) interface{} {
 	return p.parenthesize("group", expr.Expression)
 }
 
-func (p *Printer) VisitLiteral(expr *Literal) interface{} {
+func (p *Printer) VisitLiteralExpr(expr *Literal) interface{} {
 	if expr.Value == nil {
 		return "nil"
 	}
@@ -25,8 +25,18 @@ func (p *Printer) VisitLiteral(expr *Literal) interface{} {
 	return utils.ToString(expr.Value)
 }
 
-func (p *Printer) VisitUnary(expr *Unary) interface{} {
+func (p *Printer) VisitUnaryExpr(expr *Unary) interface{} {
 	return p.parenthesize(expr.Operator.Lexeme, expr.Right)
+}
+
+func (p *Printer) VisitVariableExpr(expr *Variable) interface{} {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (p *Printer) VisitAssignExpr(expr *Assign) interface{} {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (p *Printer) parenthesize(name string, exprs ...Expr) string {

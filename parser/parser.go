@@ -53,6 +53,7 @@ func (p *Parser) previous() *scanner.Token {
 	return p.tokens[p.current-1]
 }
 
+// 判断current指向的Token是不是传入的t，如果不是则panic，如果是则返回当前token，然后current+1
 func (p *Parser) consume(t scanner.TokenType, msg string) *scanner.Token {
 	if p.check(t) {
 		return p.advance()
@@ -69,7 +70,7 @@ func (p *Parser) synchronize() {
 func (p *Parser) Parse() (stmts []Stmt) {
 	// 一个程序由多个stmt + EOF组成: program -> stmt* EOF
 	for !p.isAtEnd() {
-		stmts = append(stmts, p.statement())
+		stmts = append(stmts, p.declaration())
 	}
 
 	return stmts

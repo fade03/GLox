@@ -17,7 +17,7 @@ func NewBinary(left Expr, operator *scanner.Token, right Expr) *Binary {
 }
 
 func (b *Binary) Accept(visitor ExprVisitor) interface{} {
-	return visitor.VisitBinary(b)
+	return visitor.VisitBinaryExpr(b)
 }
 
 type Grouping struct {
@@ -29,7 +29,7 @@ func NewGrouping(expression Expr) *Grouping {
 }
 
 func (g *Grouping) Accept(visitor ExprVisitor) interface{} {
-	return visitor.VisitGrouping(g)
+	return visitor.VisitGroupingExpr(g)
 }
 
 type Literal struct {
@@ -41,7 +41,7 @@ func NewLiteral(value interface{}) *Literal {
 }
 
 func (l *Literal) Accept(visitor ExprVisitor) interface{} {
-	return visitor.VisitLiteral(l)
+	return visitor.VisitLiteralExpr(l)
 }
 
 type Unary struct {
@@ -54,5 +54,31 @@ func NewUnary(operator *scanner.Token, right Expr) *Unary {
 }
 
 func (u *Unary) Accept(visitor ExprVisitor) interface{} {
-	return visitor.VisitUnary(u)
+	return visitor.VisitUnaryExpr(u)
+}
+
+// Variable 表达式中表示AST的节点
+type Variable struct {
+	Name *scanner.Token
+}
+
+func NewVariable(name *scanner.Token) *Variable {
+	return &Variable{Name: name}
+}
+
+func (v *Variable) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitVariableExpr(v)
+}
+
+type Assign struct {
+	Name  *scanner.Token
+	Value Expr
+}
+
+func NewAssign(name *scanner.Token, value Expr) *Assign {
+	return &Assign{Name: name, Value: value}
+}
+
+func (a *Assign) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitAssignExpr(a)
 }
