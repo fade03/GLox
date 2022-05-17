@@ -20,7 +20,7 @@ func (p *Parser) declaration() Stmt {
 }
 
 // varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
-// 变量声明本身也可以看作是statement的一部分
+// varDecl 本身也可以看作是statement的一部分
 func (p *Parser) varDecl() Stmt {
 	name := p.consume(scanner.IDENTIFIER, "Expected variable name.")
 	// initializer是可选的
@@ -28,7 +28,7 @@ func (p *Parser) varDecl() Stmt {
 	if p.match(scanner.EQUAL) {
 		initializer = p.expression()
 	}
-	// 注意consume掉一个分号
+	// 注意最后consume掉一个分号
 	p.consume(scanner.SEMICOLON, "Expected ';' after variable declaration.")
 	return NewVarDeclStmt(name, initializer)
 }

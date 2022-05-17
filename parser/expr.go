@@ -57,7 +57,7 @@ func (u *Unary) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitUnaryExpr(u)
 }
 
-// Variable 表达式中表示AST的节点
+// Variable 也是表达式的一部分
 type Variable struct {
 	Name *scanner.Token
 }
