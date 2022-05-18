@@ -33,10 +33,14 @@ func (p *Parser) varDecl() Stmt {
 	return NewVarDeclStmt(name, initializer)
 }
 
-// statement -> exprStmt | printStmt
+// statement -> exprStmt | printStmt | block
 func (p *Parser) statement() Stmt {
 	if p.match(scanner.PRINT) {
 		return p.printStmt()
+	}
+
+	if p.match(scanner.LEFT_BRACE) {
+		return NewBlockStmt(p.block())
 	}
 
 	return p.exprStmt()
@@ -60,6 +64,16 @@ func (p *Parser) printStmt() Stmt {
 	p.consume(scanner.SEMICOLON, "Expected ';' after value.")
 
 	return NewPrintStmt(value)
+}
+
+// block -> "{" + declaration* + "}"
+func (p *Parser) block() (stmts []Stmt) {
+	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+		stmts = append(stmts, p.declaration())
+	}
+	p.consume(scanner.RIGHT_BRACE, "Expect '}' after block.")
+
+	return stmts
 }
 
 // expression -> assignment

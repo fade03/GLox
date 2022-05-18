@@ -8,11 +8,11 @@ import (
 
 // Interpreter ExprVisitor 和 StmtVisitor 子类之一，计算表达式的值
 type Interpreter struct {
-	environment Environment
+	environment *Environment
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{environment: make(map[string]interface{})}
+	return &Interpreter{environment: NewEnvironment(nil)}
 }
 
 func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) interface{} {
@@ -95,7 +95,7 @@ func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) {
 	value := i.evaluate(stmt.Expr)
 	// 需要打印计算的值
-	fmt.Printf("%v", value)
+	fmt.Printf("%v\n", value)
 }
 
 func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) {
@@ -107,6 +107,11 @@ func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) {
 	i.environment.define(stmt.Name, value)
 }
 
+func (i *Interpreter) VisitBlockStmt(stmt *parser.BlockStmt) {
+	// 把当前作用域的env传入下一个block
+	i.executeBlock(stmt, NewEnvironment(i.environment))
+}
+
 // evaluate 计算表达式的值
 func (i *Interpreter) evaluate(expr parser.Expr) interface{} {
 	return expr.Accept(i)
@@ -115,6 +120,22 @@ func (i *Interpreter) evaluate(expr parser.Expr) interface{} {
 // execute 执行一个statement
 func (i *Interpreter) execute(stmt parser.Stmt) {
 	stmt.Accept(i)
+}
+
+func (i *Interpreter) executeBlock(block *parser.BlockStmt, env *Environment) {
+	previous := i.environment
+	// 如果execute方法出现异常，defer还会正常执行，之前的作用域会正常恢复
+	defer func() {
+		// block执行完毕后，恢复之前的作用域
+		i.environment = previous
+	}()
+
+	i.environment = env
+	for _, stmt := range block.Stmts {
+		// 新的env替换当前的env
+		// 解释执行block中的statement
+		i.execute(stmt)
+	}
 }
 
 func (i *Interpreter) Interpret(stmts []parser.Stmt) {

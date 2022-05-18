@@ -42,3 +42,16 @@ func NewVarDeclStmt(name *scanner.Token, initializer Expr) *VarDeclStmt {
 func (v *VarDeclStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitVarDeclStmt(v)
 }
+
+// BlockStmt 一个Block由多个statement组成，包含变量声明、表达式、print语句等
+type BlockStmt struct {
+	Stmts []Stmt
+}
+
+func NewBlockStmt(stmts []Stmt) *BlockStmt {
+	return &BlockStmt{Stmts: stmts}
+}
+
+func (b *BlockStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitBlockStmt(b)
+}
