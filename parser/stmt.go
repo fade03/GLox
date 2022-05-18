@@ -55,3 +55,17 @@ func NewBlockStmt(stmts []Stmt) *BlockStmt {
 func (b *BlockStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitBlockStmt(b)
 }
+
+type IfStmt struct {
+	Condition  Expr
+	ThenBranch Stmt
+	ElseBranch Stmt
+}
+
+func NewIfStmt(condition Expr, trueBranch Stmt, elseBranch Stmt) *IfStmt {
+	return &IfStmt{Condition: condition, ThenBranch: trueBranch, ElseBranch: elseBranch}
+}
+
+func (i *IfStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitIfStmt(i)
+}

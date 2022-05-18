@@ -82,3 +82,17 @@ func NewAssign(name *scanner.Token, value Expr) *Assign {
 func (a *Assign) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitAssignExpr(a)
 }
+
+type Logic struct {
+	Left     Expr
+	Operator *scanner.Token
+	Right    Expr
+}
+
+func NewLogic(left Expr, operator *scanner.Token, right Expr) *Logic {
+	return &Logic{Left: left, Operator: operator, Right: right}
+}
+
+func (l *Logic) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitLogicExpr(l)
+}

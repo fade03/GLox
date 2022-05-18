@@ -9,4 +9,11 @@ Not finished yet...
    - [x] Statement
    - [x] Scoop
    - [ ] Control flow
+     - [x] if-else
+     - [x] logic operation
+     - [ ] loop
 
+
+---
+
+![img.png](resources/images/img.png)

@@ -39,6 +39,11 @@ func (p *Printer) VisitAssignExpr(expr *Assign) interface{} {
 	panic("implement me")
 }
 
+func (p *Printer) VisitLogicExpr(expr *Logic) interface{} {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (p *Printer) parenthesize(name string, exprs ...Expr) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(" + name)

@@ -33,7 +33,7 @@ func (p *Parser) varDecl() Stmt {
 	return NewVarDeclStmt(name, initializer)
 }
 
-// statement -> exprStmt | printStmt | block
+// statement -> exprStmt | printStmt | block | ifStmt
 func (p *Parser) statement() Stmt {
 	if p.match(scanner.PRINT) {
 		return p.printStmt()
@@ -41,6 +41,10 @@ func (p *Parser) statement() Stmt {
 
 	if p.match(scanner.LEFT_BRACE) {
 		return NewBlockStmt(p.block())
+	}
+
+	if p.match(scanner.IF) {
+		return p.ifStmt()
 	}
 
 	return p.exprStmt()
@@ -76,16 +80,31 @@ func (p *Parser) block() (stmts []Stmt) {
 	return stmts
 }
 
+// ifStmt -> "if" "(" expression ")" statement ( "else" statement )?
+func (p *Parser) ifStmt() Stmt {
+	p.consume(scanner.LEFT_PAREN, "Expected '(' after 'if'.")
+	condition := p.expression()
+	p.consume(scanner.RIGHT_PAREN, "Expected ')' after 'if condition'.")
+
+	thenBranch := p.statement()
+	var elseBranch Stmt
+	if p.match(scanner.ELSE) {
+		elseBranch = p.statement()
+	}
+
+	return NewIfStmt(condition, thenBranch, elseBranch)
+}
+
 // expression -> assignment
 func (p *Parser) expression() Expr {
 	return p.assignment()
 }
 
-// assignment -> IDENTIFIER "=" assignment | equality
-// 某种意义上来说 assignment -> equality "=" assignment | equality
+// assignment -> IDENTIFIER "=" assignment | logicOr
+// 某种意义上来说 assignment -> logicOr "=" assignment | logicOr
 func (p *Parser) assignment() Expr {
 	// 赋值表达式 = 号左侧其实是一个"伪表达式"，是一个经过计算可以赋值的"东西"，所以这里要先对左侧进行求值
-	expr := p.equality()
+	expr := p.logicOr()
 	if p.match(scanner.EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
@@ -95,6 +114,31 @@ func (p *Parser) assignment() Expr {
 		}
 
 		panic(newParseError(equals, "Invalid assignment target."))
+	}
+
+	// 如果右侧没有初始化表达式，那么相当于就是一个equality表达式
+	return expr
+}
+
+// logicOr -> logicAnd ( "or" logicAnd )*
+func (p *Parser) logicOr() Expr {
+	expr := p.logicAnd()
+	for p.match(scanner.OR) {
+		operator := p.previous()
+		right := p.logicAnd()
+		expr = NewLogic(expr, operator, right)
+	}
+
+	return expr
+}
+
+// logicAnd -> equality ( "and" equality )*
+func (p *Parser) logicAnd() Expr {
+	expr := p.equality()
+	for p.match(scanner.AND) {
+		operator := p.previous()
+		right := p.equality()
+		expr = NewLogic(expr, operator, right)
 	}
 
 	return expr
