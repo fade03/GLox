@@ -125,3 +125,9 @@ func (i *Interpreter) VisitIfStmt(stmt *parser.IfStmt) {
 		i.execute(stmt.ThenBranch)
 	}
 }
+
+func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
+	for isTruth(i.evaluate(stmt.Condition)) {
+		i.execute(stmt.Body)
+	}
+}

@@ -36,7 +36,7 @@ type Literal struct {
 	Value interface{}
 }
 
-func NewLiteral(value interface{}) *Literal {
+func NewLiteral(value interface{}) Expr {
 	return &Literal{value}
 }
 

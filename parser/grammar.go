@@ -2,6 +2,7 @@ package parser
 
 import (
 	"LoxGo/scanner"
+	"LoxGo/utils"
 )
 
 // declaration -> varDecl | statement
@@ -22,18 +23,18 @@ func (p *Parser) declaration() Stmt {
 // varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
 // varDecl 本身也可以看作是statement的一部分
 func (p *Parser) varDecl() Stmt {
-	name := p.consume(scanner.IDENTIFIER, "Expected variable name.")
+	name := p.consume(scanner.IDENTIFIER, "Expect variable name.")
 	// initializer是可选的
 	var initializer Expr
 	if p.match(scanner.EQUAL) {
 		initializer = p.expression()
 	}
 	// 注意最后consume掉一个分号
-	p.consume(scanner.SEMICOLON, "Expected ';' after variable declaration.")
+	p.consume(scanner.SEMICOLON, "Expect ';' after variable declaration.")
 	return NewVarDeclStmt(name, initializer)
 }
 
-// statement -> exprStmt | printStmt | block | ifStmt
+// statement -> exprStmt | printStmt | block | ifStmt | whileStmt | forStmt
 func (p *Parser) statement() Stmt {
 	if p.match(scanner.PRINT) {
 		return p.printStmt()
@@ -47,6 +48,14 @@ func (p *Parser) statement() Stmt {
 		return p.ifStmt()
 	}
 
+	if p.match(scanner.WHILE) {
+		return p.whileStmt()
+	}
+
+	if p.match(scanner.FOR) {
+		return p.forStmt()
+	}
+
 	return p.exprStmt()
 }
 
@@ -55,7 +64,7 @@ func (p *Parser) exprStmt() Stmt {
 	// 解析expression的值
 	value := p.expression()
 	// 如果下一个Token是';'，则consume掉，否则就出现了语法错误
-	p.consume(scanner.SEMICOLON, "Expected ';' after value.")
+	p.consume(scanner.SEMICOLON, "Expect ';' after value.")
 
 	return NewExprStmt(value)
 }
@@ -65,7 +74,7 @@ func (p *Parser) printStmt() Stmt {
 	// "print"已经在statement()中consume掉了（用于区分stmt的类型），所以这里不需要再match一遍
 	value := p.expression()
 	// consume ';'
-	p.consume(scanner.SEMICOLON, "Expected ';' after value.")
+	p.consume(scanner.SEMICOLON, "Expect ';' after value.")
 
 	return NewPrintStmt(value)
 }
@@ -82,9 +91,9 @@ func (p *Parser) block() (stmts []Stmt) {
 
 // ifStmt -> "if" "(" expression ")" statement ( "else" statement )?
 func (p *Parser) ifStmt() Stmt {
-	p.consume(scanner.LEFT_PAREN, "Expected '(' after 'if'.")
+	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'if'.")
 	condition := p.expression()
-	p.consume(scanner.RIGHT_PAREN, "Expected ')' after 'if condition'.")
+	p.consume(scanner.RIGHT_PAREN, "Expect ')' after 'if condition'.")
 
 	thenBranch := p.statement()
 	var elseBranch Stmt
@@ -93,6 +102,62 @@ func (p *Parser) ifStmt() Stmt {
 	}
 
 	return NewIfStmt(condition, thenBranch, elseBranch)
+}
+
+// whileStmt -> "while" "(" expression ")" statement
+func (p *Parser) whileStmt() Stmt {
+	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'while'.")
+	condition := p.expression()
+	p.consume(scanner.RIGHT_PAREN, "Expect ')' after 'while condition'.")
+	body := p.statement()
+
+	return NewWhileStmt(condition, body)
+}
+
+// forStmt 由语法糖实现
+func (p *Parser) forStmt() Stmt {
+	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'for'.")
+	var initializer Stmt
+	// for循环的初始化部分
+	if p.match(scanner.SEMICOLON) {
+		// 如果匹配到 ; 号，说明for循环的初始化被省略
+		initializer = nil
+	} else if p.match(scanner.VAR) {
+		// 如果匹配到 var ，则为initializer
+		initializer = p.varDecl()
+	} else {
+		// 如果没有匹配到var，则一定是一个表达式
+		initializer = p.exprStmt()
+	}
+	// for循环的条件表达式
+	var condition Expr
+	// 如果没有匹配到 ; 号，则说明条件表达式没有被省略
+	if !p.check(scanner.SEMICOLON) {
+		condition = p.expression()
+	}
+	p.consume(scanner.SEMICOLON, "Expect ';' after loop condition.")
+	// for循环的增量语句
+	var increment Expr
+	if !p.check(scanner.RIGHT_PAREN) {
+		increment = p.expression()
+	}
+	p.consume(scanner.RIGHT_PAREN, "Expect ')' after for clauses.")
+	// for循环的主体
+	body := p.statement()
+	// 开始语法脱糖
+	if increment != nil {
+		// 如果增量语句不为nil，则相当于每次while循环body执行完毕之后再执行increment，把两个合成为一个block
+		body = NewBlockStmt([]Stmt{body, NewExprStmt(increment)})
+	}
+
+	condition = utils.Ternary(condition == nil, NewLiteral(true), condition)
+	body = NewWhileStmt(condition, body)
+
+	if initializer != nil {
+		body = NewBlockStmt([]Stmt{initializer, body})
+	}
+
+	return body
 }
 
 // expression -> assignment
@@ -228,7 +293,7 @@ func (p *Parser) primary() Expr {
 
 	if p.match(scanner.LEFT_PAREN) {
 		expr := p.expression()
-		p.consume(scanner.RIGHT_PAREN, "Expected ')' after expression.")
+		p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
 		return NewGrouping(expr)
 	}
 

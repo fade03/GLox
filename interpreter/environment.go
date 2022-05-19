@@ -42,6 +42,7 @@ func (e *Environment) assign(name *scanner.Token, value interface{}) {
 	// }
 	if e.enclosing != nil {
 		e.enclosing.assign(name, value)
+		return
 	}
 
 	panic(NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))

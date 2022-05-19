@@ -17,4 +17,5 @@ type StmtVisitor interface {
 	VisitVarDeclStmt(stmt *VarDeclStmt)
 	VisitBlockStmt(stmt *BlockStmt)
 	VisitIfStmt(stmt *IfStmt)
+	VisitWhileStmt(stmt *WhileStmt)
 }

@@ -69,3 +69,16 @@ func NewIfStmt(condition Expr, trueBranch Stmt, elseBranch Stmt) *IfStmt {
 func (i *IfStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitIfStmt(i)
 }
+
+type WhileStmt struct {
+	Condition Expr
+	Body      Stmt
+}
+
+func NewWhileStmt(condition Expr, body Stmt) *WhileStmt {
+	return &WhileStmt{Condition: condition, Body: body}
+}
+
+func (w *WhileStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitWhileStmt(w)
+}
