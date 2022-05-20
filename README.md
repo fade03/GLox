@@ -1,6 +1,6 @@
 _GLox is an interpreter for a toy language "Lox" based on Go._
 
-Not finished yet...
+It's a project in progress, expected to be completed within a week.
  - [x] Scanner
  - [x] Parser
  - [ ] Interpreter
@@ -13,25 +13,3 @@ Not finished yet...
      - [x] logic operation
      - [x] loop
    - [ ] Function
-
----
-
-![img.png](resources/images/img.png)
-
-![img.png](resources/images/for.png)
-
-```lox
-for (var a=0; a<10; a=a+1) {
-    print a;
-}
-
-{
-    var a = 0;
-    while (a < 10) {
-        {
-            print a;
-        }
-        a = a + 1
-    }
-}
-```
