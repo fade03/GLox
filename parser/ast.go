@@ -260,7 +260,7 @@ func (p *Parser) factor() Expr {
 	return expr
 }
 
-// unary -> ("!" | "-") unary | primary
+// unary -> ("!" | "-") unary | call
 func (p *Parser) unary() Expr {
 	if p.match(scanner.BANG, scanner.MINUS) {
 		operator := p.previous()
@@ -268,7 +268,40 @@ func (p *Parser) unary() Expr {
 		return NewUnary(operator, right)
 	}
 
-	return p.primary()
+	return p.call()
+}
+
+// call -> primary ( "(" arguments? ")" )*
+// 函数调用的优先级仅次于 primary
+// 函数调用本身也可以是callee，如 fcall()()()，从文法角度上说就是 IDENTIFIER + ( "(" arguments? ")" )*
+// 一个 argument 本身就是一个 expression, 所以不需要再重新定义它的文法，只需要在解析函数调用的同时解析函数参数即可
+func (p *Parser) call() Expr {
+	expr := p.primary()
+	for {
+		if p.match(scanner.LEFT_PAREN) {
+			var arguments []Expr
+			// 当前Token如果不是 ")"，则说明有参数
+			if !p.check(scanner.RIGHT_PAREN) {
+				for {
+					// 添加参数
+					arguments = append(arguments, p.expression())
+					// 参数之间要以 "," 隔开
+					if !p.match(scanner.COMMA) {
+						break
+					}
+				}
+			}
+			// consume掉 ")"
+			paren := p.consume(scanner.RIGHT_PAREN, "Expect ')' after arguments.")
+			// 不断迭代expr
+			expr = NewCall(expr, paren, arguments)
+		} else {
+			// 如果匹配不到 "(" ，说明不是一次函数调用，而是一个 primary ，直接返回求得的expr
+			break
+		}
+	}
+
+	return expr
 }
 
 // primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ｜ IDENTIFIER

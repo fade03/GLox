@@ -94,6 +94,11 @@ func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 	return i.evaluate(expr.Right)
 }
 
+func (i *Interpreter) VisitCall(call *parser.Call) interface{} {
+	// TODO
+	panic("implement me!")
+}
+
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 	i.evaluate(stmt.Expr)
 }

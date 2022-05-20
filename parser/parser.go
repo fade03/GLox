@@ -68,7 +68,7 @@ func (p *Parser) synchronize() {
 
 // Parse 将一个程序（Token序列）解析成多个Stmt
 func (p *Parser) Parse() (stmts []Stmt) {
-	// 一个程序由多个stmt + EOF组成: program -> stmt* EOF
+	// 一个程序由多个declaration + EOF组成: program -> declaration* EOF
 	for !p.isAtEnd() {
 		stmts = append(stmts, p.declaration())
 	}

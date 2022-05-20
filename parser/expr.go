@@ -96,3 +96,17 @@ func NewLogic(left Expr, operator *scanner.Token, right Expr) *Logic {
 func (l *Logic) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitLogicExpr(l)
 }
+
+type Call struct {
+	Callee    Expr
+	paren     *scanner.Token
+	arguments []Expr
+}
+
+func NewCall(callee Expr, paren *scanner.Token, arguments []Expr) *Call {
+	return &Call{Callee: callee, paren: paren, arguments: arguments}
+}
+
+func (c *Call) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitCall(c)
+}
