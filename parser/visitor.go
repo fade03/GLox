@@ -8,7 +8,7 @@ type ExprVisitor interface {
 	VisitVariableExpr(expr *Variable) interface{}
 	VisitAssignExpr(expr *Assign) interface{}
 	VisitLogicExpr(expr *Logic) interface{}
-	VisitCall(call *Call) interface{}
+	VisitCallExpr(call *Call) interface{}
 }
 
 // StmtVisitor 中定义的方法相当于直接执行语句，所以不会有返回值
@@ -19,4 +19,6 @@ type StmtVisitor interface {
 	VisitBlockStmt(stmt *BlockStmt)
 	VisitIfStmt(stmt *IfStmt)
 	VisitWhileStmt(stmt *WhileStmt)
+	VisitFuncStmt(stmt *FuncStmt)
+	VisitReturnStmt(stmt *ReturnStmt)
 }

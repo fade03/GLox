@@ -17,6 +17,10 @@ func (e *Environment) define(name *scanner.Token, value interface{}) {
 	e.values[name.Lexeme] = value
 }
 
+func (e *Environment) defineStr(name string, value interface{}) {
+	e.values[name] = value
+}
+
 func (e *Environment) lookup(name *scanner.Token) interface{} {
 	// 当存在作用域的时候，现在当前作用域查找
 	if value, exist := e.values[name.Lexeme]; exist {

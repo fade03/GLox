@@ -18,6 +18,33 @@ func (e *ExprStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitExprStmt(e)
 }
 
+type FuncStmt struct {
+	Name   *scanner.Token
+	Params []*scanner.Token
+	Body   *BlockStmt
+}
+
+func NewFunctionStmt(name *scanner.Token, params []*scanner.Token, body *BlockStmt) *FuncStmt {
+	return &FuncStmt{Name: name, Params: params, Body: body}
+}
+
+func (f *FuncStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitFuncStmt(f)
+}
+
+type ReturnStmt struct {
+	Keyword *scanner.Token
+	Value   Expr
+}
+
+func NewReturnStmt(keyword *scanner.Token, value Expr) *ReturnStmt {
+	return &ReturnStmt{Keyword: keyword, Value: value}
+}
+
+func (r *ReturnStmt) Accept(visit StmtVisitor) {
+	visit.VisitReturnStmt(r)
+}
+
 type PrintStmt struct {
 	Expr Expr
 }

@@ -2,15 +2,25 @@ package interpreter
 
 import (
 	"LoxGo/parser"
+	"time"
 )
 
 // Interpreter ExprVisitor 和 StmtVisitor 子类之一，计算表达式的值
 type Interpreter struct {
 	environment *Environment
+	globals     *Environment // globals 存放的是可以全局使用的native函数
 }
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{environment: NewEnvironment(nil)}
+	g := NewEnvironment(nil)
+	g.defineStr("clock", NewLoxCallableImpl(func(interpreter *Interpreter, arguments []interface{}) interface{} {
+		return time.Now().Unix()
+	}, 0))
+
+	return &Interpreter{
+		environment: NewEnvironment(nil),
+		globals:     g,
+	}
 }
 
 // semantic.go

@@ -99,14 +99,14 @@ func (l *Logic) Accept(visitor ExprVisitor) interface{} {
 
 type Call struct {
 	Callee    Expr
-	paren     *scanner.Token
-	arguments []Expr
+	Paren     *scanner.Token
+	Arguments []Expr
 }
 
 func NewCall(callee Expr, paren *scanner.Token, arguments []Expr) *Call {
-	return &Call{Callee: callee, paren: paren, arguments: arguments}
+	return &Call{Callee: callee, Paren: paren, Arguments: arguments}
 }
 
 func (c *Call) Accept(visitor ExprVisitor) interface{} {
-	return visitor.VisitCall(c)
+	return visitor.VisitCallExpr(c)
 }

@@ -18,7 +18,7 @@ func newParseError(token *scanner.Token, message string) *ParseError {
 func (e *ParseError) Error() string {
 	lerror.HadError = true
 	if e.token.Type == scanner.EOF {
-		return fmt.Sprintf("%d at end %s", e.token.Line, e.message)
+		return fmt.Sprintf("[Syntax error] line %d at end %s", e.token.Line, e.message)
 	}
-	return fmt.Sprintf("%d at '%s' %s", e.token.Line, e.token.Lexeme, e.message)
+	return fmt.Sprintf("[Syntax error] line %d at '%s': %s", e.token.Line, e.token.Lexeme, e.message)
 }

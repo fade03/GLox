@@ -94,13 +94,42 @@ func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 	return i.evaluate(expr.Right)
 }
 
-func (i *Interpreter) VisitCall(call *parser.Call) interface{} {
-	// TODO
-	panic("implement me!")
+func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
+	callee, ok := i.evaluate(call.Callee).(LoxCallable)
+	if !ok {
+		panic(NewRuntimeError(call.Paren, "Can only call functions and classes."))
+	}
+
+	var args []interface{}
+	for _, arg := range call.Arguments {
+		args = append(args, i.evaluate(arg))
+	}
+
+	// 判断实参和形参的个数是否相同
+	if len(args) != callee.Arity() {
+		panic(NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
+	}
+
+	return callee.Call(i, args)
 }
 
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 	i.evaluate(stmt.Expr)
+}
+
+func (i *Interpreter) VisitFuncStmt(stmt *parser.FuncStmt) {
+	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
+	function := NewLoxFunction(stmt)
+	i.environment.define(stmt.Name, function)
+}
+
+func (i *Interpreter) VisitReturnStmt(stmt *parser.ReturnStmt) {
+	var value interface{}
+	if stmt.Value != nil {
+		value = i.evaluate(stmt.Value)
+	}
+
+	panic(NewReturn(value))
 }
 
 func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) {

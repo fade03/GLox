@@ -9,7 +9,8 @@ It's a project in progress, expected to be completed within a week.
    - [x] Statement
    - [x] Scoop
    - [x] Control flow
-     - [x] if-else
-     - [x] logic operation
-     - [x] loop
    - [ ] Function
+     - [x] func declaration
+     - [x] func call
+     - [x] global functions
+     - [ ] closure

@@ -5,18 +5,25 @@ import (
 	"LoxGo/utils"
 )
 
-// declaration -> varDecl | statement
+// declaration -> varDecl | funcDecl |statement
 func (p *Parser) declaration() Stmt {
-	defer func() {
-		if err := recover(); err != nil {
-			// 当解释器出现错误的时候，进行同步，让解释器跳转到下一个语句或者声明的开头
-			p.synchronize()
-		}
-	}()
+	//defer func() {
+	//	if err := recover(); err != nil {
+	//		// 当解释器出现错误的时候，进行同步，让解释器跳转到下一个语句或者声明的开头
+	//		p.synchronize()
+	//	}
+	//}()
 	// 如果可以匹配到 var 关键字，则为varDecl
 	if p.match(scanner.VAR) {
 		return p.varDecl()
 	}
+
+	// funcDecl -> "fun" function
+	// 同 varDecl, 也可以看做是 statement 的一部分
+	if p.match(scanner.FUN) {
+		return p.function("function")
+	}
+
 	return p.statement()
 }
 
@@ -34,7 +41,36 @@ func (p *Parser) varDecl() Stmt {
 	return NewVarDeclStmt(name, initializer)
 }
 
-// statement -> exprStmt | printStmt | block | ifStmt | whileStmt | forStmt
+// function -> IDENTIFIER "(" parameters? ")" block
+// 将 function 单独抽离出来，可以在定义方法的时候复用这一条规则
+// @param kind: "function" or "method"
+func (p *Parser) function(kind string) Stmt {
+	// 获取函数/方法名
+	name := p.consume(scanner.IDENTIFIER, "Expect"+kind+" name.")
+	p.consume(scanner.LEFT_PAREN, "Expect '(' after "+kind+" name.")
+	var parameters []*scanner.Token
+	if !p.check(scanner.RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				panic(newParseError(p.peek(), "Can't have more than 255 parameters."))
+			}
+			// 获取参数名，Lox是动态类型，没有类型声明
+			parameters = append(parameters, p.consume(scanner.IDENTIFIER, "Expect parameter name."))
+			if !p.match(scanner.COMMA) {
+				break
+			}
+		}
+	}
+	// consume掉 ")"
+	p.consume(scanner.RIGHT_PAREN, "Expect ')' after parameters.")
+	// consume掉 "{"，一个函数体（block）的开始
+	p.consume(scanner.LEFT_BRACE, "Expect '{' before "+kind+" body.")
+
+	body := NewBlockStmt(p.block())
+	return NewFunctionStmt(name, parameters, body)
+}
+
+// statement -> exprStmt | printStmt | block | ifStmt | whileStmt | forStmt ｜ returnStmt
 func (p *Parser) statement() Stmt {
 	if p.match(scanner.PRINT) {
 		return p.printStmt()
@@ -54,6 +90,11 @@ func (p *Parser) statement() Stmt {
 
 	if p.match(scanner.FOR) {
 		return p.forStmt()
+	}
+
+	if p.match(scanner.RETURN) {
+		// todo
+		return p.returnStmt()
 	}
 
 	return p.exprStmt()
@@ -158,6 +199,18 @@ func (p *Parser) forStmt() Stmt {
 	}
 
 	return body
+}
+
+// returnStmt -> "return" (expression)? ;
+func (p *Parser) returnStmt() Stmt {
+	keyword := p.previous()
+	var value Expr
+	if !p.check(scanner.SEMICOLON) {
+		value = p.expression()
+	}
+	p.consume(scanner.SEMICOLON, "Expect ';' after return value.")
+
+	return NewReturnStmt(keyword, value)
 }
 
 // expression -> assignment
@@ -273,7 +326,7 @@ func (p *Parser) unary() Expr {
 
 // call -> primary ( "(" arguments? ")" )*
 // 函数调用的优先级仅次于 primary
-// 函数调用本身也可以是callee，如 fcall()()()，从文法角度上说就是 IDENTIFIER + ( "(" arguments? ")" )*
+// 函数调用本身也可以是callee，如 funcall()()()，从文法角度上说就是 IDENTIFIER + ( "(" arguments? ")" )*
 // 一个 argument 本身就是一个 expression, 所以不需要再重新定义它的文法，只需要在解析函数调用的同时解析函数参数即可
 func (p *Parser) call() Expr {
 	expr := p.primary()
@@ -283,6 +336,10 @@ func (p *Parser) call() Expr {
 			// 当前Token如果不是 ")"，则说明有参数
 			if !p.check(scanner.RIGHT_PAREN) {
 				for {
+					// 限制最大参数量为255
+					if len(arguments) >= 255 {
+						panic(newParseError(p.peek(), "Can't have more than 255 arguments."))
+					}
 					// 添加参数
 					arguments = append(arguments, p.expression())
 					// 参数之间要以 "," 隔开
@@ -304,7 +361,7 @@ func (p *Parser) call() Expr {
 	return expr
 }
 
-// primary -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ｜ IDENTIFIER
+// primary -> NUMBER | STRING | "true" | "false" | "nil" | "return" | "(" expression ")" ｜ IDENTIFIER
 func (p *Parser) primary() Expr {
 	if p.match(scanner.TRUE) {
 		return NewLiteral(true)

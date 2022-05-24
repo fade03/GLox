@@ -44,7 +44,7 @@ func (p *Printer) VisitLogicExpr(expr *Logic) interface{} {
 	panic("implement me")
 }
 
-func (p *Printer) VisitCall(call *Call) interface{} {
+func (p *Printer) VisitCallExpr(call *Call) interface{} {
 	//TODO implement me
 	panic("implement me")
 }
