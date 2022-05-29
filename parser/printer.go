@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"LoxGo/utils"
+	"GLox/utils"
 	"bytes"
 )
 

@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"LoxGo/lerror"
-	"LoxGo/scanner"
+	"GLox/lerror"
+	"GLox/scanner"
 	"fmt"
 )
 

@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"LoxGo/scanner"
-	"LoxGo/utils"
+	"GLox/scanner"
+	"GLox/utils"
 )
 
 // declaration -> varDecl | funcDecl |statement

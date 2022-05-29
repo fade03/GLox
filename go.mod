@@ -1,3 +1,3 @@
-module LoxGo
+module GLox
 
 go 1.18

@@ -1,6 +1,6 @@
 package interpreter
 
-import "LoxGo/scanner"
+import "GLox/scanner"
 
 // isTruth Lox中规定nil和false为"假"，其余都为真
 func isTruth(any interface{}) bool {
@@ -12,6 +12,7 @@ func isTruth(any interface{}) bool {
 		return val
 	}
 	// 其余一律返回true (nil除外)
+
 	return true
 }
 

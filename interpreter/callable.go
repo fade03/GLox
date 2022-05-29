@@ -1,6 +1,6 @@
 package interpreter
 
-import "LoxGo/parser"
+import "GLox/parser"
 
 type LoxCallableFunc func(interpreter *Interpreter, arguments []interface{}) interface{}
 
@@ -33,14 +33,15 @@ func (n *Native) String() string {
 	return "<native fn>"
 }
 
-// #####
+// ############### Function ###################
 
 type LoxFunction struct {
 	declaration *parser.FuncStmt
+	closure     *Environment // 在函数体内部声明的函数
 }
 
-func NewLoxFunction(declaration *parser.FuncStmt) *LoxFunction {
-	return &LoxFunction{declaration: declaration}
+func NewLoxFunction(declaration *parser.FuncStmt, closure *Environment) *LoxFunction {
+	return &LoxFunction{declaration: declaration, closure: closure}
 }
 
 func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}) {
@@ -51,8 +52,8 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (
 		}
 	}()
 
-	// 创建函数自己的作用域，enclosing就是全局的函数globals
-	env := NewEnvironment(interpreter.globals)
+	// 创建函数自己的作用域，enclosing就是全局的函数 ~globals~
+	env := NewEnvironment(lf.closure)
 	// 将形参和实参绑定起来
 	for i, arg := range arguments {
 		env.define(lf.declaration.Params[i], arg)

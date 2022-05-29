@@ -1,6 +1,6 @@
 package parser
 
-import "LoxGo/scanner"
+import "GLox/scanner"
 
 type Stmt interface {
 	Accept(visitor StmtVisitor)
@@ -29,7 +29,7 @@ func NewFunctionStmt(name *scanner.Token, params []*scanner.Token, body *BlockSt
 }
 
 func (f *FuncStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitFuncStmt(f)
+	visitor.VisitFuncDeclStmt(f)
 }
 
 type ReturnStmt struct {

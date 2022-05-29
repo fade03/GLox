@@ -1,6 +1,6 @@
 package interpreter
 
-import "LoxGo/scanner"
+import "GLox/scanner"
 
 // Environment 用来管理变量名->值之间的映射
 

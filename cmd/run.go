@@ -1,10 +1,10 @@
 package main
 
 import (
-	"LoxGo/interpreter"
-	le "LoxGo/lerror"
-	"LoxGo/parser"
-	"LoxGo/scanner"
+	"GLox/interpreter"
+	le "GLox/lerror"
+	"GLox/parser"
+	"GLox/scanner"
 	"bufio"
 	"fmt"
 	"io/ioutil"

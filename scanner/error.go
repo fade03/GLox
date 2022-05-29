@@ -1,6 +1,6 @@
 package scanner
 
-import e "LoxGo/lerror"
+import e "GLox/lerror"
 
 func serror(line int, message string) {
 	e.Report(line, "", message)

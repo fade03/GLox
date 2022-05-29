@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	"LoxGo/parser"
+	"GLox/parser"
 	"time"
 )
 

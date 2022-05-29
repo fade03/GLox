@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"LoxGo/scanner"
+	"GLox/scanner"
 	"testing"
 )
 

@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"LoxGo/parser"
-	"LoxGo/scanner"
+	"GLox/parser"
+	"GLox/scanner"
 	"fmt"
 )
 
@@ -117,9 +117,9 @@ func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 	i.evaluate(stmt.Expr)
 }
 
-func (i *Interpreter) VisitFuncStmt(stmt *parser.FuncStmt) {
+func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncStmt) {
 	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
-	function := NewLoxFunction(stmt)
+	function := NewLoxFunction(stmt, i.environment)
 	i.environment.define(stmt.Name, function)
 }
 

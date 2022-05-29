@@ -1,6 +1,6 @@
 package scanner
 
-import "LoxGo/utils"
+import "GLox/utils"
 
 type Scanner struct {
 	source  string

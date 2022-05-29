@@ -11,7 +11,7 @@ func defineAst(outputDir string, baseName string, types []string) error {
 	f := outputDir + "/" + strings.ToLower(baseName) + ".go"
 	var buffer bytes.Buffer
 	buffer.WriteString("package parser\n\n")
-	buffer.WriteString("import \"LoxGo/scanner\"\n\n")
+	buffer.WriteString("import \"GLox/scanner\"\n\n")
 	buffer.WriteString("type " + baseName + " interface" + " {\n\tAccept(visitor Visitor) interface{}\n}\n\n")
 
 	for _, t := range types {

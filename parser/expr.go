@@ -1,6 +1,6 @@
 package parser
 
-import "LoxGo/scanner"
+import "GLox/scanner"
 
 type Expr interface {
 	Accept(visitor ExprVisitor) interface{}
