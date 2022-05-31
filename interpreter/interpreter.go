@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"GLox/parser"
+	"GLox/scanner"
 	"time"
 )
 
@@ -9,6 +10,7 @@ import (
 type Interpreter struct {
 	environment *Environment
 	globals     *Environment // globals 存放的是可以全局使用的native函数
+	locals      map[parser.Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -18,8 +20,10 @@ func NewInterpreter() *Interpreter {
 	}, 0))
 
 	return &Interpreter{
-		environment: NewEnvironment(nil),
+		//environment: NewEnvironment(nil),
+		environment: NewEnvironment(g),
 		globals:     g,
+		locals:      make(map[parser.Expr]int),
 	}
 }
 
@@ -49,6 +53,19 @@ func (i *Interpreter) executeBlock(block *parser.BlockStmt, env *Environment) {
 		// 解释执行block中的statement
 		i.execute(stmt)
 	}
+}
+
+func (i *Interpreter) Resolve(expr parser.Expr, depth int) {
+	i.locals[expr] = depth
+}
+
+func (i *Interpreter) lookUpVariable(token *scanner.Token, expr parser.Expr) interface{} {
+	if distance, ok := i.locals[expr]; ok {
+		return i.environment.getAt(distance, token.Lexeme)
+	}
+
+	//return i.globals.lookup(token)
+	return i.environment.lookup(token)
 }
 
 func (i *Interpreter) Interpret(stmts []parser.Stmt) {

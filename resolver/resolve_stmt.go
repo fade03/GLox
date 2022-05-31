@@ -20,21 +20,21 @@ func (r *Resolver) VisitVarDeclStmt(stmt *parser.VarDeclStmt) {
 
 func (r *Resolver) VisitBlockStmt(stmt *parser.BlockStmt) {
 	r.beginScope()
-	r.resolveMultiStmt(stmt.Stmts)
+	r.ResolveStmt(stmt.Stmts...)
 	r.endScope()
 }
 
 func (r *Resolver) VisitIfStmt(stmt *parser.IfStmt) {
 	r.resolveExpr(stmt.Condition)
-	r.resolveSingleStmt(stmt.ThenBranch)
+	r.ResolveStmt(stmt.ThenBranch)
 	if stmt.ElseBranch != nil {
-		r.resolveSingleStmt(stmt.ElseBranch)
+		r.ResolveStmt(stmt.ElseBranch)
 	}
 }
 
 func (r *Resolver) VisitWhileStmt(stmt *parser.WhileStmt) {
-	//TODO implement me
-	panic("implement me")
+	r.resolveExpr(stmt.Condition)
+	r.ResolveStmt(stmt.Body)
 }
 
 func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncStmt) {

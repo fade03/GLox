@@ -34,7 +34,7 @@ func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) interface{} {
 	case scanner.LESS_EQUAL:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) <= rv.(float64)
-	// != 和 == 运算的结果是bool类型
+	// == 和 != 运算的结果是bool类型
 	case scanner.BANG_EQUAL:
 		return !isEqual(lv, rv)
 	case scanner.EQUAL_EQUAL:
@@ -67,16 +67,26 @@ func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) interface{} {
 }
 
 func (i *Interpreter) VisitVariableExpr(expr *parser.Variable) interface{} {
-	return i.environment.lookup(expr.Name)
+	// return i.environment.lookup(expr.Name)
+	return i.lookUpVariable(expr.Name, expr)
 }
 
 func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) interface{} {
 	// 计算Assign的语法树上的value节点
 	value := i.evaluate(expr.Value)
-	i.environment.assign(expr.Name, value)
+	/*
+		i.environment.assign(expr.Name, value)
 
-	// 因为赋值也是一个表达式，所以这里返回所求的value
-	return value
+		// 因为赋值也是一个表达式，所以这里返回所求的value
+		return value
+	*/
+	if distance, ok := i.locals[expr]; ok {
+		i.environment.assignAt(distance, expr.Name, value)
+	} else {
+		i.globals.assign(expr.Name, value)
+	}
+
+	return nil
 }
 
 func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {

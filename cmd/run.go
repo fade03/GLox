@@ -4,6 +4,7 @@ import (
 	"GLox/interpreter"
 	le "GLox/lerror"
 	"GLox/parser"
+	"GLox/resolver"
 	"GLox/scanner"
 	"bufio"
 	"fmt"
@@ -65,6 +66,9 @@ func run(sc string) {
 	}
 
 	i := interpreter.NewInterpreter()
+	r := resolver.NewResolver(i)
+
+	r.ResolveStmt(stmts...)
 	i.Interpret(stmts)
 
 	//fmt.Println(new(parser.Printer).Print(expr))

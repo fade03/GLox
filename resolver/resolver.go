@@ -17,14 +17,10 @@ func NewResolver(interpreter *interpreter.Interpreter) *Resolver {
 	return &Resolver{interpreter: interpreter, scopes: NewStack()}
 }
 
-func (r *Resolver) resolveMultiStmt(statements []parser.Stmt) {
+func (r *Resolver) ResolveStmt(statements ...parser.Stmt) {
 	for _, statement := range statements {
-		r.resolveSingleStmt(statement)
+		statement.Accept(r)
 	}
-}
-
-func (r *Resolver) resolveSingleStmt(statement parser.Stmt) {
-	statement.Accept(r)
 }
 
 func (r *Resolver) resolveExpr(expr parser.Expr) {
@@ -32,11 +28,10 @@ func (r *Resolver) resolveExpr(expr parser.Expr) {
 }
 
 func (r *Resolver) resolveLocal(expr parser.Expr, token *scanner.Token) {
-	for i, item := range r.scopes.items {
-		if _, ok := item.(Scope)[token.Lexeme]; ok {
-			// todo
-			print(i)
-			//r.interpreter.resolve(expr, r.scopes.Size()-1-i)
+	// 从栈顶向栈底搜索
+	for i := r.scopes.Size() - 1; i >= 0; i-- {
+		if _, ok := r.scopes.items[i].(Scope)[token.Lexeme]; ok {
+			r.interpreter.Resolve(expr, r.scopes.Size()-1-i)
 			return
 		}
 	}
@@ -48,6 +43,6 @@ func (r *Resolver) resolveFunction(stmt *parser.FuncStmt) {
 		r.declare(param)
 		r.define(param)
 	}
-	r.resolveMultiStmt(stmt.Body.Stmts)
+	r.ResolveStmt(stmt.Body.Stmts...)
 	r.endScope()
 }

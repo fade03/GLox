@@ -5,20 +5,11 @@ import (
 	"testing"
 )
 
-var stack = NewStack()
-
 func TestStack_Push(t *testing.T) {
-	stack.Push(1)
-	stack.Push(2)
+	var stack = NewStack()
+	stack.Push(make(map[string]bool))
+	top := stack.Peek().(map[string]bool)
 
-	fmt.Println(stack.String())
-}
-
-func TestStack_Pop(t *testing.T) {
-	stack.Pop()
-	fmt.Println(stack.String())
-}
-
-func TestStack_Peek(t *testing.T) {
-	fmt.Println(stack.Peek())
+	fmt.Println(top["a"])
+	fmt.Println(top["b"])
 }

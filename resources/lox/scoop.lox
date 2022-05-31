@@ -1,7 +1,9 @@
+// globals
 var a = "global a";
 var b = "global b";
 var c = "global c";
 {
+  // locals
   var a = "outer a";
   var b = "outer b";
   {

@@ -6,28 +6,42 @@ import (
 )
 
 func (r *Resolver) VisitBinaryExpr(expr *parser.Binary) interface{} {
-	//TODO implement me
-	panic("implement me")
+	r.resolveExpr(expr.Left)
+	r.resolveExpr(expr.Right)
+
+	return nil
 }
 
 func (r *Resolver) VisitGroupingExpr(expr *parser.Grouping) interface{} {
-	//TODO implement me
-	panic("implement me")
+	r.resolveExpr(expr.Expression)
+
+	return nil
 }
 
 func (r *Resolver) VisitLiteralExpr(expr *parser.Literal) interface{} {
-	//TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (r *Resolver) VisitUnaryExpr(expr *parser.Unary) interface{} {
-	//TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (r *Resolver) VisitVariableExpr(expr *parser.Variable) interface{} {
-	if !r.scopes.isEmpty() && r.scopes.Peek().(Scope)[expr.Name.Lexeme] == false {
+	//if prepared, ok := r.scopes.Peek().(Scope)[expr.Name.Lexeme]; !r.scopes.isEmpty() && ok && !prepared {
+	//	lerror.Report(expr.Name.Line, expr.Name.Lexeme, "Can't read local variable in its own initializer.")
+	//}
+
+	if r.scopes.isEmpty() {
+		return nil
+	}
+
+	if prepared, ok := r.scopes.Peek().(Scope)[expr.Name.Lexeme]; ok && !prepared {
 		lerror.Report(expr.Name.Line, expr.Name.Lexeme, "Can't read local variable in its own initializer.")
+		return nil
 	}
 
 	r.resolveLocal(expr, expr.Name)
@@ -43,11 +57,17 @@ func (r *Resolver) VisitAssignExpr(expr *parser.Assign) interface{} {
 }
 
 func (r *Resolver) VisitLogicExpr(expr *parser.Logic) interface{} {
-	//TODO implement me
-	panic("implement me")
+	r.resolveExpr(expr.Left)
+	r.resolveExpr(expr.Right)
+
+	return nil
 }
 
 func (r *Resolver) VisitCallExpr(call *parser.Call) interface{} {
-	//TODO implement me
-	panic("implement me")
+	r.resolveExpr(call.Callee)
+	for _, arg := range call.Arguments {
+		r.resolveExpr(arg)
+	}
+
+	return nil
 }
