@@ -37,7 +37,7 @@ func (r *Resolver) VisitWhileStmt(stmt *parser.WhileStmt) {
 	r.ResolveStmt(stmt.Body)
 }
 
-func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncStmt) {
+func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 

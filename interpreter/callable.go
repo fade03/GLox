@@ -36,11 +36,11 @@ func (n *Native) String() string {
 // ############### Function ###################
 
 type LoxFunction struct {
-	declaration *parser.FuncStmt
+	declaration *parser.FuncDeclStmt
 	closure     *Environment // 在函数体内部声明的函数
 }
 
-func NewLoxFunction(declaration *parser.FuncStmt, closure *Environment) *LoxFunction {
+func NewLoxFunction(declaration *parser.FuncDeclStmt, closure *Environment) *LoxFunction {
 	return &LoxFunction{declaration: declaration, closure: closure}
 }
 

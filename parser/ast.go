@@ -52,7 +52,7 @@ func (p *Parser) function(kind string) Stmt {
 	if !p.check(scanner.RIGHT_PAREN) {
 		for {
 			if len(parameters) >= 255 {
-				panic(newParseError(p.peek(), "Can't have more than 255 parameters."))
+				panic(NewParseError(p.peek(), "Can't have more than 255 parameters."))
 			}
 			// 获取参数名，Lox是动态类型，没有类型声明
 			parameters = append(parameters, p.consume(scanner.IDENTIFIER, "Expect parameter name."))
@@ -231,7 +231,7 @@ func (p *Parser) assignment() Expr {
 			return NewAssign(ve.Name, value)
 		}
 
-		panic(newParseError(equals, "Invalid assignment target."))
+		panic(NewParseError(equals, "Invalid assignment target."))
 	}
 
 	// 如果右侧没有初始化表达式，那么相当于就是一个equality表达式
@@ -338,7 +338,7 @@ func (p *Parser) call() Expr {
 				for {
 					// 限制最大参数量为255
 					if len(arguments) >= 255 {
-						panic(newParseError(p.peek(), "Can't have more than 255 arguments."))
+						panic(NewParseError(p.peek(), "Can't have more than 255 arguments."))
 					}
 					// 添加参数
 					arguments = append(arguments, p.expression())
@@ -388,5 +388,5 @@ func (p *Parser) primary() Expr {
 	}
 
 	// 如果不匹配任何的primary文法，则panic
-	panic(newParseError(p.peek(), "Expect expression."))
+	panic(NewParseError(p.peek(), "Expect expression."))
 }

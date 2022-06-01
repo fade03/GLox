@@ -18,17 +18,17 @@ func (e *ExprStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitExprStmt(e)
 }
 
-type FuncStmt struct {
+type FuncDeclStmt struct {
 	Name   *scanner.Token
 	Params []*scanner.Token
 	Body   *BlockStmt
 }
 
-func NewFunctionStmt(name *scanner.Token, params []*scanner.Token, body *BlockStmt) *FuncStmt {
-	return &FuncStmt{Name: name, Params: params, Body: body}
+func NewFunctionStmt(name *scanner.Token, params []*scanner.Token, body *BlockStmt) *FuncDeclStmt {
+	return &FuncDeclStmt{Name: name, Params: params, Body: body}
 }
 
-func (f *FuncStmt) Accept(visitor StmtVisitor) {
+func (f *FuncDeclStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitFuncDeclStmt(f)
 }
 

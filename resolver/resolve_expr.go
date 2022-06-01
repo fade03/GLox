@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"GLox/lerror"
+	"GLox/interpreter"
 	"GLox/parser"
 )
 
@@ -40,8 +40,9 @@ func (r *Resolver) VisitVariableExpr(expr *parser.Variable) interface{} {
 	}
 
 	if prepared, ok := r.scopes.Peek().(Scope)[expr.Name.Lexeme]; ok && !prepared {
-		lerror.Report(expr.Name.Line, expr.Name.Lexeme, "Can't read local variable in its own initializer.")
-		return nil
+		// lerror.Report(expr.Name.Line, expr.Name.Lexeme, "Can't read local variable in its own initializer.")
+		panic(interpreter.NewRuntimeError(expr.Name, "Can't read local variable in its own initializer."))
+		// return nil
 	}
 
 	r.resolveLocal(expr, expr.Name)

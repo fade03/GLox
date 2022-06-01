@@ -59,7 +59,7 @@ func (p *Parser) consume(t scanner.TokenType, msg string) *scanner.Token {
 		return p.advance()
 	}
 
-	panic(newParseError(p.peek(), msg))
+	panic(NewParseError(p.peek(), msg))
 }
 
 func (p *Parser) synchronize() {

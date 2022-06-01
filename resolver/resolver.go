@@ -37,7 +37,7 @@ func (r *Resolver) resolveLocal(expr parser.Expr, token *scanner.Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(stmt *parser.FuncStmt) {
+func (r *Resolver) resolveFunction(stmt *parser.FuncDeclStmt) {
 	r.beginScope()
 	for _, param := range stmt.Params {
 		r.declare(param)
