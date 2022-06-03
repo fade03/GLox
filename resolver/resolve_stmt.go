@@ -47,3 +47,9 @@ func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 func (r *Resolver) VisitReturnStmt(stmt *parser.ReturnStmt) {
 	r.resolveExpr(stmt.Value)
 }
+
+func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+	// Lox允许将一个类声明为局部变量
+	r.declare(stmt.Name)
+	r.define(stmt.Name)
+}

@@ -8,6 +8,7 @@ import (
 
 // Parser -> Resolver -> Interpreter
 
+// Resolver implement ExprVisitor, StmtVisitor
 type Resolver struct {
 	interpreter *interpreter.Interpreter
 	scopes      *Stack

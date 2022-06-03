@@ -175,3 +175,9 @@ func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
 		i.execute(stmt.Body)
 	}
 }
+
+func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+	i.environment.define(stmt.Name, nil)
+	class := NewLoxClass(stmt.Name.Lexeme)
+	i.environment.assign(stmt.Name, class)
+}

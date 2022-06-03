@@ -32,6 +32,20 @@ func (f *FuncDeclStmt) Accept(visitor StmtVisitor) {
 	visitor.VisitFuncDeclStmt(f)
 }
 
+type ClassDeclStmt struct {
+	Name    *scanner.Token
+	Methods []*FuncDeclStmt
+}
+
+func NewClassDeclStmt(name *scanner.Token, methods []*FuncDeclStmt) *ClassDeclStmt {
+	return &ClassDeclStmt{Name: name, Methods: methods}
+}
+
+func (c *ClassDeclStmt) Accept(visitor StmtVisitor) {
+	visitor.VisitClassDeclStmt(c)	
+}
+
+
 type ReturnStmt struct {
 	Keyword *scanner.Token
 	Value   Expr

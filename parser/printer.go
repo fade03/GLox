@@ -30,23 +30,27 @@ func (p *Printer) VisitUnaryExpr(expr *Unary) interface{} {
 }
 
 func (p *Printer) VisitVariableExpr(expr *Variable) interface{} {
-	// TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (p *Printer) VisitAssignExpr(expr *Assign) interface{} {
-	//TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (p *Printer) VisitLogicExpr(expr *Logic) interface{} {
-	//TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (p *Printer) VisitCallExpr(call *Call) interface{} {
-	//TODO implement me
-	panic("implement me")
+	// empty implementation
+
+	return nil
 }
 
 func (p *Printer) parenthesize(name string, exprs ...Expr) string {

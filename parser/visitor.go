@@ -21,4 +21,5 @@ type StmtVisitor interface {
 	VisitWhileStmt(stmt *WhileStmt)
 	VisitFuncDeclStmt(stmt *FuncDeclStmt)
 	VisitReturnStmt(stmt *ReturnStmt)
+	VisitClassDeclStmt(stmt *ClassDeclStmt)
 }

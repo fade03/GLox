@@ -5,7 +5,7 @@ import (
 	"GLox/utils"
 )
 
-// declaration -> varDecl | funcDecl |statement
+// declaration -> varDecl | funcDecl | classDecl | statement
 func (p *Parser) declaration() Stmt {
 	//defer func() {
 	//	if err := recover(); err != nil {
@@ -21,7 +21,11 @@ func (p *Parser) declaration() Stmt {
 	// funcDecl -> "fun" function
 	// 同 varDecl, 也可以看做是 statement 的一部分
 	if p.match(scanner.FUN) {
-		return p.function("function")
+		return p.functionDecl("function")
+	}
+
+	if p.match(scanner.CLASS) {
+		return p.classDecl()
 	}
 
 	return p.statement()
@@ -41,10 +45,10 @@ func (p *Parser) varDecl() Stmt {
 	return NewVarDeclStmt(name, initializer)
 }
 
-// function -> IDENTIFIER "(" parameters? ")" block
-// 将 function 单独抽离出来，可以在定义方法的时候复用这一条规则
-// @param kind: "function" or "method"
-func (p *Parser) function(kind string) Stmt {
+// functionDecl -> IDENTIFIER "(" parameters? ")" block
+// 将 functionDecl 单独抽离出来，可以在定义方法的时候复用这一条规则
+// @param kind: "functionDecl" or "method"
+func (p *Parser) functionDecl(kind string) Stmt {
 	// 获取函数/方法名
 	name := p.consume(scanner.IDENTIFIER, "Expect"+kind+" name.")
 	p.consume(scanner.LEFT_PAREN, "Expect '(' after "+kind+" name.")
@@ -67,7 +71,23 @@ func (p *Parser) function(kind string) Stmt {
 	p.consume(scanner.LEFT_BRACE, "Expect '{' before "+kind+" body.")
 
 	body := NewBlockStmt(p.block())
+
 	return NewFunctionStmt(name, parameters, body)
+}
+
+// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+func (p *Parser) classDecl() Stmt {
+	name := p.consume(scanner.IDENTIFIER, "Expect class name.")
+	p.consume(scanner.LEFT_BRACE, "Expect '{' before class body.")
+
+	var methods []*FuncDeclStmt
+	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+		methods = append(methods, p.functionDecl("method").(*FuncDeclStmt))
+	}
+
+	p.consume(scanner.RIGHT_BRACE, "Expected '}' after class body.")
+
+	return NewClassDeclStmt(name, methods)
 }
 
 // statement -> exprStmt | printStmt | block | ifStmt | whileStmt | forStmt ｜ returnStmt
