@@ -110,3 +110,30 @@ func NewCall(callee Expr, paren *scanner.Token, arguments []Expr) *Call {
 func (c *Call) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitCallExpr(c)
 }
+
+type Get struct {
+	Object    Expr
+	Attribute *scanner.Token
+}
+
+func NewGet(object Expr, attribute *scanner.Token) *Get {
+	return &Get{Object: object, Attribute: attribute}
+}
+
+func (g *Get) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitGetExpr(g)
+}
+
+type Set struct {
+	Object Expr
+	Attribute *scanner.Token
+	Value Expr
+}
+
+func NewSet(Object Expr, Attribute *scanner.Token, Value Expr) *Set {
+	return &Set{Object: Object, Attribute: Attribute, Value: Value}
+}
+
+func (s *Set) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitSetExpr(s)
+}

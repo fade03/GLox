@@ -33,7 +33,7 @@ func (n *Native) String() string {
 	return "<native fn>"
 }
 
-// ############### Function ###################
+// ################ Function Abstraction ###################
 
 type LoxFunction struct {
 	declaration *parser.FuncDeclStmt

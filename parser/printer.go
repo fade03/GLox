@@ -53,6 +53,18 @@ func (p *Printer) VisitCallExpr(call *Call) interface{} {
 	return nil
 }
 
+func (p *Printer) VisitGetExpr(expr *Get) interface{} {
+	// empty implementation
+
+	return nil
+}
+
+func (p *Printer) VisitSetExpr(expr *Set) interface{} {
+	// empty implementation
+
+	return nil
+}
+
 func (p *Printer) parenthesize(name string, exprs ...Expr) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(" + name)

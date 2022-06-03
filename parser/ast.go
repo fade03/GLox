@@ -238,23 +238,27 @@ func (p *Parser) expression() Expr {
 	return p.assignment()
 }
 
-// assignment -> IDENTIFIER "=" assignment | logicOr
-// 某种意义上来说 assignment -> logicOr "=" assignment | logicOr
+// assignment -> ( call "." )? IDENTIFIER "=" assignment | logicOr
 func (p *Parser) assignment() Expr {
 	// 赋值表达式 = 号左侧其实是一个"伪表达式"，是一个经过计算可以赋值的"东西"，所以这里要先对左侧进行求值
+	// expr的计算结果可能是logicOr或者优先级比LogicOr更高的表达式，主要包括**getter表达式**和**primary**
 	expr := p.logicOr()
 	if p.match(scanner.EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
 		// 只有左侧计算的结果是Variable的时候，才会进行赋值语句
 		if ve, ok := expr.(*Variable); ok {
+			// =号左侧表达式是一个Variable
 			return NewAssign(ve.Name, value)
+		} else if getter, ok := expr.(*Get); ok {
+			// =号左侧表达式是一个Getter，则返回Setter表达式
+			return NewSet(getter.Object, getter.Attribute, value)
 		}
 
 		panic(NewParseError(equals, "Invalid assignment target."))
 	}
 
-	// 如果右侧没有初始化表达式，那么相当于就是一个equality表达式
+	// 如果右侧没有初始化表达式，那么相当于是一个logicOr表达式
 	return expr
 }
 
@@ -344,10 +348,11 @@ func (p *Parser) unary() Expr {
 	return p.call()
 }
 
-// call -> primary ( "(" arguments? ")" )*
-// 函数调用的优先级仅次于 primary
+// call -> primary ( "(" arguments? ")" | "." IDENTIFIER )*
+// 函数调用的优先级仅次于 primary,
 // 函数调用本身也可以是callee，如 funcall()()()，从文法角度上说就是 IDENTIFIER + ( "(" arguments? ")" )*
-// 一个 argument 本身就是一个 expression, 所以不需要再重新定义它的文法，只需要在解析函数调用的同时解析函数参数即可
+// 一个 argument 本身就是一个 expression, 所以不需要再重新定义它的文法，只需要在解析函数调用的同时解析函数参数即可,
+// 属性访问（foo.bar）和函数调用具有相同的优先级
 func (p *Parser) call() Expr {
 	expr := p.primary()
 	for {
@@ -372,8 +377,12 @@ func (p *Parser) call() Expr {
 			paren := p.consume(scanner.RIGHT_PAREN, "Expect ')' after arguments.")
 			// 不断迭代expr
 			expr = NewCall(expr, paren, arguments)
+		} else if p.match(scanner.DOT) {
+			attribute := p.consume(scanner.IDENTIFIER, "Expect attribute name after '.'.")
+			// 还是不断迭代expr
+			expr = NewGet(expr, attribute)
 		} else {
-			// 如果匹配不到 "(" ，说明不是一次函数调用，而是一个 primary ，直接返回求得的expr
+			// 如果 "(" 和 "." 都匹配不到，直接break，说明是一个primary
 			break
 		}
 	}

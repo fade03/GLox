@@ -15,7 +15,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	g := NewEnvironment(nil)
-	g.defineStr("clock", NewLoxCallableImpl(func(interpreter *Interpreter, arguments []interface{}) interface{} {
+	g.defineLiteral("clock", NewLoxCallableImpl(func(interpreter *Interpreter, arguments []interface{}) interface{} {
 		return time.Now().Unix()
 	}, 0))
 

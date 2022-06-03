@@ -17,7 +17,7 @@ func (e *Environment) define(name *scanner.Token, value interface{}) {
 	e.values[name.Lexeme] = value
 }
 
-func (e *Environment) defineStr(name string, value interface{}) {
+func (e *Environment) defineLiteral(name string, value interface{}) {
 	e.values[name] = value
 }
 

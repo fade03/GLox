@@ -72,3 +72,16 @@ func (r *Resolver) VisitCallExpr(call *parser.Call) interface{} {
 
 	return nil
 }
+
+func (r *Resolver) VisitGetExpr(expr *parser.Get) interface {} {
+	r.resolveExpr(expr.Object)
+
+	return nil 
+}
+
+func (r *Resolver) VisitSetExpr(expr *parser.Set) interface{} {
+	r.resolveExpr(expr.Object)
+	r.resolveExpr(expr.Value)
+
+	return nil 
+}

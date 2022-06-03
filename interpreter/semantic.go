@@ -123,6 +123,35 @@ func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
 	return callee.Call(i, args)
 }
 
+func (i *Interpreter) VisitGetExpr(expr *parser.Get) interface{} {
+	object := i.evaluate(expr.Object)
+	// object必须是一个Instance
+	instance, ok := object.(*LoxInstance)
+
+	if !ok {
+		panic(NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+	}
+
+	return instance.Get(expr.Attribute)
+}
+
+func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
+	// 计算等号左侧的表达式，找出要复制的属性
+	object := i.evaluate(expr.Object)
+	instance, ok := object.(*LoxInstance)
+	
+	if !ok {
+		panic(NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+	}
+
+	value := i.evaluate(expr.Value)
+	instance.fields[expr.Attribute.Lexeme] = value
+
+	return value
+}
+
+// ################### Statement #####################
+
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 	i.evaluate(stmt.Expr)
 }
