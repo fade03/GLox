@@ -1,6 +1,8 @@
 package resolver
 
-import "GLox/scanner"
+import (
+	"GLox/scanner/token"
+)
 
 type Scope map[string]bool
 
@@ -12,7 +14,7 @@ func (r *Resolver) endScope() {
 	r.scopes.Pop()
 }
 
-func (r *Resolver) declare(token *scanner.Token) {
+func (r *Resolver) declare(token *token.Token) {
 	if r.scopes.isEmpty() {
 		return
 	}
@@ -20,7 +22,7 @@ func (r *Resolver) declare(token *scanner.Token) {
 	r.scopes.Peek().(Scope)[token.Lexeme] = false
 }
 
-func (r *Resolver) define(token *scanner.Token) {
+func (r *Resolver) define(token *token.Token) {
 	if r.scopes.isEmpty() {
 		return
 	}

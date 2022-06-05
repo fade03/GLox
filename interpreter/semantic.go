@@ -2,7 +2,7 @@ package interpreter
 
 import (
 	"GLox/parser"
-	"GLox/scanner"
+	"GLox/scanner/token"
 	"fmt"
 )
 
@@ -10,34 +10,34 @@ func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) interface{} {
 	// (递归)计算左右子表达式的值
 	lv, rv := i.evaluate(expr.Left), i.evaluate(expr.Right)
 	switch expr.Operator.Type {
-	case scanner.MINUS:
+	case token.MINUS:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) - rv.(float64)
-	case scanner.STAR:
+	case token.STAR:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) * rv.(float64)
-	case scanner.SLASH:
+	case token.SLASH:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) / rv.(float64)
 	// 加法操作可以定义在数字和字符之上
-	case scanner.PLUS:
+	case token.PLUS:
 		return doPlus(expr.Operator, lv, rv)
-	case scanner.GREATER:
+	case token.GREATER:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) > rv.(float64)
-	case scanner.GREATER_EQUAL:
+	case token.GREATER_EQUAL:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) >= rv.(float64)
-	case scanner.LESS:
+	case token.LESS:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) < rv.(float64)
-	case scanner.LESS_EQUAL:
+	case token.LESS_EQUAL:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) <= rv.(float64)
 	// == 和 != 运算的结果是bool类型
-	case scanner.BANG_EQUAL:
+	case token.BANG_EQUAL:
 		return !isEqual(lv, rv)
-	case scanner.EQUAL_EQUAL:
+	case token.EQUAL_EQUAL:
 		return isEqual(lv, rv)
 	}
 	return nil
@@ -56,10 +56,10 @@ func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) interface{} {
 	// 先计算右侧表达式的值
 	rv := i.evaluate(expr.Right)
 	switch expr.Operator.Type {
-	case scanner.MINUS:
+	case token.MINUS:
 		checkNumberOperands(expr.Operator, rv)
 		return -(rv.(float64))
-	case scanner.BANG:
+	case token.BANG:
 		return !isTruth(rv)
 	}
 
@@ -91,7 +91,7 @@ func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) interface{} {
 
 func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 	left := i.evaluate(expr.Left)
-	if expr.Operator.Type == scanner.OR {
+	if expr.Operator.Type == token.OR {
 		if isTruth(left) {
 			return left
 		}

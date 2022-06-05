@@ -1,6 +1,8 @@
 package interpreter
 
-import "GLox/scanner"
+import (
+	"GLox/scanner/token"
+)
 
 // isTruth Lox中规定nil和false为"假"，其余都为真
 func isTruth(any interface{}) bool {
@@ -16,7 +18,7 @@ func isTruth(any interface{}) bool {
 	return true
 }
 
-func doPlus(operator *scanner.Token, left, right interface{}) interface{} {
+func doPlus(operator *token.Token, left, right interface{}) interface{} {
 	_, ok1 := left.(float64)
 	_, ok2 := right.(float64)
 	if ok1 && ok2 {
@@ -45,7 +47,7 @@ func isEqual(left, right interface{}) bool {
 	return left == right
 }
 
-func checkNumberOperands(operator *scanner.Token, operands ...interface{}) {
+func checkNumberOperands(operator *token.Token, operands ...interface{}) {
 	for _, operand := range operands {
 		if _, ok := operand.(float64); !ok {
 			panic(NewRuntimeError(operator, "Operand must be a number."))

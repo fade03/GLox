@@ -1,10 +1,13 @@
 package scanner
 
-import "GLox/utils"
+import (
+	"GLox/scanner/token"
+	"GLox/utils"
+)
 
 type Scanner struct {
 	source  string
-	tokens  []*Token
+	tokens  []*token.Token
 	start   int // start指向被扫描词素的第一个字符
 	current int // current指向当前处理的字符
 	line    int // line指向当前行数
@@ -14,7 +17,7 @@ func NewScanner(source string) *Scanner {
 	return &Scanner{source: source, line: 1}
 }
 
-func (s *Scanner) ScanTokens() []*Token {
+func (s *Scanner) ScanTokens() []*token.Token {
 	for !s.isAtEnd() {
 		// 下一轮扫描的开始位置就是上一轮扫描的结束位置
 		s.start = s.current
@@ -22,42 +25,42 @@ func (s *Scanner) ScanTokens() []*Token {
 	}
 
 	// After scanning source, add EOF to tokens
-	s.tokens = append(s.tokens, NewToken(EOF, "", nil, s.line))
+	s.tokens = append(s.tokens, token.NewToken(token.EOF, "", nil, s.line))
 	return s.tokens
 }
 
 func (s *Scanner) scanToken() {
 	switch c := s.advance(); c {
 	case '(':
-		s.addToken(LEFT_PAREN, nil)
+		s.addToken(token.LEFT_PAREN, nil)
 	case ')':
-		s.addToken(RIGHT_PAREN, nil)
+		s.addToken(token.RIGHT_PAREN, nil)
 	case '{':
-		s.addToken(LEFT_BRACE, nil)
+		s.addToken(token.LEFT_BRACE, nil)
 	case '}':
-		s.addToken(RIGHT_BRACE, nil)
+		s.addToken(token.RIGHT_BRACE, nil)
 	case ',':
-		s.addToken(COMMA, nil)
+		s.addToken(token.COMMA, nil)
 	case '.':
-		s.addToken(DOT, nil)
+		s.addToken(token.DOT, nil)
 	case '-':
-		s.addToken(MINUS, nil)
+		s.addToken(token.MINUS, nil)
 	case '+':
-		s.addToken(PLUS, nil)
+		s.addToken(token.PLUS, nil)
 	case ';':
-		s.addToken(SEMICOLON, nil)
+		s.addToken(token.SEMICOLON, nil)
 	case '*':
-		s.addToken(STAR, nil)
+		s.addToken(token.STAR, nil)
 	// Look ahead 一个字符
 	case '!':
-		s.addToken(utils.Ternary(s.matchNext('='), BANG_EQUAL, BANG), nil)
+		s.addToken(utils.Ternary(s.matchNext('='), token.BANG_EQUAL, token.BANG), nil)
 		//s.addToken(TokenType((utils.Ternary(s.matchNext('='), BANG_EQUAL, BANG)).(int)), nil)
 	case '=':
-		s.addToken(utils.Ternary(s.matchNext('='), EQUAL_EQUAL, EQUAL), nil)
+		s.addToken(utils.Ternary(s.matchNext('='), token.EQUAL_EQUAL, token.EQUAL), nil)
 	case '<':
-		s.addToken(utils.Ternary(s.matchNext('='), LESS_EQUAL, LESS), nil)
+		s.addToken(utils.Ternary(s.matchNext('='), token.LESS_EQUAL, token.LESS), nil)
 	case '>':
-		s.addToken(utils.Ternary(s.matchNext('='), GREATER_EQUAL, GREATER), nil)
+		s.addToken(utils.Ternary(s.matchNext('='), token.GREATER_EQUAL, token.GREATER), nil)
 	// '/' 需要特殊处理，因为注释也是以 '/' 开头
 	case '/':
 		if s.matchNext('/') {
@@ -66,7 +69,7 @@ func (s *Scanner) scanToken() {
 				s.advance()
 			}
 		} else {
-			s.addToken(SLASH, nil)
+			s.addToken(token.SLASH, nil)
 		}
 	case ' ', '\r', '\t':
 		break
@@ -88,8 +91,8 @@ func (s *Scanner) scanToken() {
 	}
 }
 
-func (s *Scanner) addToken(tokenType TokenType, literal interface{}) {
-	s.tokens = append(s.tokens, NewToken(tokenType, s.source[s.start:s.current], literal, s.line))
+func (s *Scanner) addToken(tokenType token.TokenType, literal interface{}) {
+	s.tokens = append(s.tokens, token.NewToken(tokenType, s.source[s.start:s.current], literal, s.line))
 }
 
 func (s *Scanner) isAtEnd() bool {

@@ -1,25 +1,27 @@
 package scanner
 
-var keywords map[string]TokenType
+import "GLox/scanner/token"
+
+var keywords map[string]token.TokenType
 
 func init() {
-	keywords = make(map[string]TokenType)
-	keywords["and"] = AND
-	keywords["class"] = CLASS
-	keywords["else"] = ELSE
-	keywords["false"] = FALSE
-	keywords["for"] = FOR
-	keywords["fun"] = FUN
-	keywords["if"] = IF
-	keywords["nil"] = NIL
-	keywords["or"] = OR
-	keywords["print"] = PRINT
-	keywords["return"] = RETURN
-	keywords["super"] = SUPER
-	keywords["this"] = THIS
-	keywords["true"] = TRUE
-	keywords["var"] = VAR
-	keywords["while"] = WHILE
+	keywords = make(map[string]token.TokenType)
+	keywords["and"] = token.AND
+	keywords["class"] = token.CLASS
+	keywords["else"] = token.ELSE
+	keywords["false"] = token.FALSE
+	keywords["for"] = token.FOR
+	keywords["fun"] = token.FUN
+	keywords["if"] = token.IF
+	keywords["nil"] = token.NIL
+	keywords["or"] = token.OR
+	keywords["print"] = token.PRINT
+	keywords["return"] = token.RETURN
+	keywords["super"] = token.SUPER
+	keywords["this"] = token.THIS
+	keywords["true"] = token.TRUE
+	keywords["var"] = token.VAR
+	keywords["while"] = token.WHILE
 }
 
 func (s *Scanner) addIdentifier() {
@@ -33,5 +35,5 @@ func (s *Scanner) addIdentifier() {
 		return
 	}
 
-	s.addToken(IDENTIFIER, il)
+	s.addToken(token.IDENTIFIER, il)
 }

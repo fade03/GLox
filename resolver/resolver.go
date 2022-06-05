@@ -3,7 +3,7 @@ package resolver
 import (
 	"GLox/interpreter"
 	"GLox/parser"
-	"GLox/scanner"
+	"GLox/scanner/token"
 )
 
 var (
@@ -33,7 +33,7 @@ func (r *Resolver) resolveExpr(expr parser.Expr) {
 	expr.Accept(r)
 }
 
-func (r *Resolver) resolveLocal(expr parser.Expr, token *scanner.Token) {
+func (r *Resolver) resolveLocal(expr parser.Expr, token *token.Token) {
 	// 从栈顶向栈底搜索
 	for i := r.scopes.Size() - 1; i >= 0; i-- {
 		if _, ok := r.scopes.items[i].(Scope)[token.Lexeme]; ok {

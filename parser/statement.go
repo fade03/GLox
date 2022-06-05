@@ -1,6 +1,8 @@
 package parser
 
-import "GLox/scanner"
+import (
+	"GLox/scanner/token"
+)
 
 type Stmt interface {
 	Accept(visitor StmtVisitor)
@@ -19,12 +21,12 @@ func (e *ExprStmt) Accept(visitor StmtVisitor) {
 }
 
 type FuncDeclStmt struct {
-	Name   *scanner.Token
-	Params []*scanner.Token
+	Name   *token.Token
+	Params []*token.Token
 	Body   *BlockStmt
 }
 
-func NewFunctionStmt(name *scanner.Token, params []*scanner.Token, body *BlockStmt) *FuncDeclStmt {
+func NewFunctionStmt(name *token.Token, params []*token.Token, body *BlockStmt) *FuncDeclStmt {
 	return &FuncDeclStmt{Name: name, Params: params, Body: body}
 }
 
@@ -33,25 +35,29 @@ func (f *FuncDeclStmt) Accept(visitor StmtVisitor) {
 }
 
 type ClassDeclStmt struct {
-	Name    *scanner.Token
-	Methods []*FuncDeclStmt
+	Name       *token.Token
+	Superclass *Variable
+	Methods    []*FuncDeclStmt
 }
 
-func NewClassDeclStmt(name *scanner.Token, methods []*FuncDeclStmt) *ClassDeclStmt {
-	return &ClassDeclStmt{Name: name, Methods: methods}
+func NewClassDeclStmt(name *token.Token, superclass *Variable, methods []*FuncDeclStmt) *ClassDeclStmt {
+	return &ClassDeclStmt{
+		Name:       name,
+		Superclass: superclass,
+		Methods:    methods,
+	}
 }
 
 func (c *ClassDeclStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitClassDeclStmt(c)	
+	visitor.VisitClassDeclStmt(c)
 }
 
-
 type ReturnStmt struct {
-	Keyword *scanner.Token
+	Keyword *token.Token
 	Value   Expr
 }
 
-func NewReturnStmt(keyword *scanner.Token, value Expr) *ReturnStmt {
+func NewReturnStmt(keyword *token.Token, value Expr) *ReturnStmt {
 	return &ReturnStmt{Keyword: keyword, Value: value}
 }
 
@@ -72,11 +78,11 @@ func (p *PrintStmt) Accept(visitor StmtVisitor) {
 }
 
 type VarDeclStmt struct {
-	Name        *scanner.Token
+	Name        *token.Token
 	Initializer Expr
 }
 
-func NewVarDeclStmt(name *scanner.Token, initializer Expr) *VarDeclStmt {
+func NewVarDeclStmt(name *token.Token, initializer Expr) *VarDeclStmt {
 	return &VarDeclStmt{Name: name, Initializer: initializer}
 }
 

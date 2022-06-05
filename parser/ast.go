@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"GLox/scanner"
+	"GLox/scanner/token"
 	"GLox/utils"
 )
 
@@ -14,17 +14,17 @@ func (p *Parser) declaration() Stmt {
 	//	}
 	//}()
 	// 如果可以匹配到 var 关键字，则为varDecl
-	if p.match(scanner.VAR) {
+	if p.match(token.VAR) {
 		return p.varDecl()
 	}
 
 	// funcDecl -> "fun" function
 	// 同 varDecl, 也可以看做是 statement 的一部分
-	if p.match(scanner.FUN) {
+	if p.match(token.FUN) {
 		return p.functionDecl("function")
 	}
 
-	if p.match(scanner.CLASS) {
+	if p.match(token.CLASS) {
 		return p.classDecl()
 	}
 
@@ -34,14 +34,14 @@ func (p *Parser) declaration() Stmt {
 // varDecl -> "var" IDENTIFIER ( "=" expression )? ";"
 // varDecl 本身也可以看作是statement的一部分
 func (p *Parser) varDecl() Stmt {
-	name := p.consume(scanner.IDENTIFIER, "Expect variable name.")
+	name := p.consume(token.IDENTIFIER, "Expect variable name.")
 	// initializer是可选的
 	var initializer Expr
-	if p.match(scanner.EQUAL) {
+	if p.match(token.EQUAL) {
 		initializer = p.expression()
 	}
 	// 注意最后consume掉一个分号
-	p.consume(scanner.SEMICOLON, "Expect ';' after variable declaration.")
+	p.consume(token.SEMICOLON, "Expect ';' after variable declaration.")
 	return NewVarDeclStmt(name, initializer)
 }
 
@@ -50,69 +50,74 @@ func (p *Parser) varDecl() Stmt {
 // @param kind: "functionDecl" or "method"
 func (p *Parser) functionDecl(kind string) Stmt {
 	// 获取函数/方法名
-	name := p.consume(scanner.IDENTIFIER, "Expect"+kind+" name.")
-	p.consume(scanner.LEFT_PAREN, "Expect '(' after "+kind+" name.")
-	var parameters []*scanner.Token
-	if !p.check(scanner.RIGHT_PAREN) {
+	name := p.consume(token.IDENTIFIER, "Expect"+kind+" name.")
+	p.consume(token.LEFT_PAREN, "Expect '(' after "+kind+" name.")
+	var parameters []*token.Token
+	if !p.check(token.RIGHT_PAREN) {
 		for {
 			if len(parameters) >= 255 {
 				panic(NewParseError(p.peek(), "Can't have more than 255 parameters."))
 			}
 			// 获取参数名，Lox是动态类型，没有类型声明
-			parameters = append(parameters, p.consume(scanner.IDENTIFIER, "Expect parameter name."))
-			if !p.match(scanner.COMMA) {
+			parameters = append(parameters, p.consume(token.IDENTIFIER, "Expect parameter name."))
+			if !p.match(token.COMMA) {
 				break
 			}
 		}
 	}
 	// consume掉 ")"
-	p.consume(scanner.RIGHT_PAREN, "Expect ')' after parameters.")
+	p.consume(token.RIGHT_PAREN, "Expect ')' after parameters.")
 	// consume掉 "{"，一个函数体（block）的开始
-	p.consume(scanner.LEFT_BRACE, "Expect '{' before "+kind+" body.")
+	p.consume(token.LEFT_BRACE, "Expect '{' before "+kind+" body.")
 
 	body := NewBlockStmt(p.block())
 
 	return NewFunctionStmt(name, parameters, body)
 }
 
-// classDecl -> "class" IDENTIFIER "{" function* "}" ;
+// classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 func (p *Parser) classDecl() Stmt {
-	name := p.consume(scanner.IDENTIFIER, "Expect class name.")
-	p.consume(scanner.LEFT_BRACE, "Expect '{' before class body.")
+	name := p.consume(token.IDENTIFIER, "Expect class name.")
+	p.consume(token.LEFT_BRACE, "Expect '{' before class body.")
+
+	var superclass *Variable
+	if p.match(token.LESS) {
+		superclass = NewVariable(p.consume(token.IDENTIFIER, "Expect superclass name after '<'."))
+	}
 
 	var methods []*FuncDeclStmt
-	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
 		methods = append(methods, p.functionDecl("method").(*FuncDeclStmt))
 	}
 
-	p.consume(scanner.RIGHT_BRACE, "Expected '}' after class body.")
+	p.consume(token.RIGHT_BRACE, "Expected '}' after class body.")
 
-	return NewClassDeclStmt(name, methods)
+	return NewClassDeclStmt(name, superclass, methods)
 }
 
 // statement -> exprStmt | printStmt | block | ifStmt | whileStmt | forStmt ｜ returnStmt
 func (p *Parser) statement() Stmt {
-	if p.match(scanner.PRINT) {
+	if p.match(token.PRINT) {
 		return p.printStmt()
 	}
 
-	if p.match(scanner.LEFT_BRACE) {
+	if p.match(token.LEFT_BRACE) {
 		return NewBlockStmt(p.block())
 	}
 
-	if p.match(scanner.IF) {
+	if p.match(token.IF) {
 		return p.ifStmt()
 	}
 
-	if p.match(scanner.WHILE) {
+	if p.match(token.WHILE) {
 		return p.whileStmt()
 	}
 
-	if p.match(scanner.FOR) {
+	if p.match(token.FOR) {
 		return p.forStmt()
 	}
 
-	if p.match(scanner.RETURN) {
+	if p.match(token.RETURN) {
 		// todo
 		return p.returnStmt()
 	}
@@ -125,7 +130,7 @@ func (p *Parser) exprStmt() Stmt {
 	// 解析expression的值
 	value := p.expression()
 	// 如果下一个Token是';'，则consume掉，否则就出现了语法错误
-	p.consume(scanner.SEMICOLON, "Expect ';' after value.")
+	p.consume(token.SEMICOLON, "Expect ';' after value.")
 
 	return NewExprStmt(value)
 }
@@ -135,30 +140,30 @@ func (p *Parser) printStmt() Stmt {
 	// "print"已经在statement()中consume掉了（用于区分stmt的类型），所以这里不需要再match一遍
 	value := p.expression()
 	// consume ';'
-	p.consume(scanner.SEMICOLON, "Expect ';' after value.")
+	p.consume(token.SEMICOLON, "Expect ';' after value.")
 
 	return NewPrintStmt(value)
 }
 
 // block -> "{" + declaration* + "}"
 func (p *Parser) block() (stmts []Stmt) {
-	for !p.check(scanner.RIGHT_BRACE) && !p.isAtEnd() {
+	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
 		stmts = append(stmts, p.declaration())
 	}
-	p.consume(scanner.RIGHT_BRACE, "Expect '}' after block.")
+	p.consume(token.RIGHT_BRACE, "Expect '}' after block.")
 
 	return stmts
 }
 
 // ifStmt -> "if" "(" expression ")" statement ( "else" statement )?
 func (p *Parser) ifStmt() Stmt {
-	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'if'.")
+	p.consume(token.LEFT_PAREN, "Expect '(' after 'if'.")
 	condition := p.expression()
-	p.consume(scanner.RIGHT_PAREN, "Expect ')' after 'if condition'.")
+	p.consume(token.RIGHT_PAREN, "Expect ')' after 'if condition'.")
 
 	thenBranch := p.statement()
 	var elseBranch Stmt
-	if p.match(scanner.ELSE) {
+	if p.match(token.ELSE) {
 		elseBranch = p.statement()
 	}
 
@@ -167,9 +172,9 @@ func (p *Parser) ifStmt() Stmt {
 
 // whileStmt -> "while" "(" expression ")" statement
 func (p *Parser) whileStmt() Stmt {
-	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'while'.")
+	p.consume(token.LEFT_PAREN, "Expect '(' after 'while'.")
 	condition := p.expression()
-	p.consume(scanner.RIGHT_PAREN, "Expect ')' after 'while condition'.")
+	p.consume(token.RIGHT_PAREN, "Expect ')' after 'while condition'.")
 	body := p.statement()
 
 	return NewWhileStmt(condition, body)
@@ -177,13 +182,13 @@ func (p *Parser) whileStmt() Stmt {
 
 // forStmt 由语法糖实现
 func (p *Parser) forStmt() Stmt {
-	p.consume(scanner.LEFT_PAREN, "Expect '(' after 'for'.")
+	p.consume(token.LEFT_PAREN, "Expect '(' after 'for'.")
 	var initializer Stmt
 	// for循环的初始化部分
-	if p.match(scanner.SEMICOLON) {
+	if p.match(token.SEMICOLON) {
 		// 如果匹配到 ; 号，说明for循环的初始化被省略
 		initializer = nil
-	} else if p.match(scanner.VAR) {
+	} else if p.match(token.VAR) {
 		// 如果匹配到 var ，则为initializer
 		initializer = p.varDecl()
 	} else {
@@ -193,16 +198,16 @@ func (p *Parser) forStmt() Stmt {
 	// for循环的条件表达式
 	var condition Expr
 	// 如果没有匹配到 ; 号，则说明条件表达式没有被省略
-	if !p.check(scanner.SEMICOLON) {
+	if !p.check(token.SEMICOLON) {
 		condition = p.expression()
 	}
-	p.consume(scanner.SEMICOLON, "Expect ';' after loop condition.")
+	p.consume(token.SEMICOLON, "Expect ';' after loop condition.")
 	// for循环的增量语句
 	var increment Expr
-	if !p.check(scanner.RIGHT_PAREN) {
+	if !p.check(token.RIGHT_PAREN) {
 		increment = p.expression()
 	}
-	p.consume(scanner.RIGHT_PAREN, "Expect ')' after for clauses.")
+	p.consume(token.RIGHT_PAREN, "Expect ')' after for clauses.")
 	// for循环的主体
 	body := p.statement()
 	// 开始语法脱糖
@@ -225,10 +230,10 @@ func (p *Parser) forStmt() Stmt {
 func (p *Parser) returnStmt() Stmt {
 	keyword := p.previous()
 	var value Expr
-	if !p.check(scanner.SEMICOLON) {
+	if !p.check(token.SEMICOLON) {
 		value = p.expression()
 	}
-	p.consume(scanner.SEMICOLON, "Expect ';' after return value.")
+	p.consume(token.SEMICOLON, "Expect ';' after return value.")
 
 	return NewReturnStmt(keyword, value)
 }
@@ -243,7 +248,7 @@ func (p *Parser) assignment() Expr {
 	// 赋值表达式 = 号左侧其实是一个"伪表达式"，是一个经过计算可以赋值的"东西"，所以这里要先对左侧进行求值
 	// expr的计算结果可能是logicOr或者优先级比LogicOr更高的表达式，主要包括**getter表达式**和**primary**
 	expr := p.logicOr()
-	if p.match(scanner.EQUAL) {
+	if p.match(token.EQUAL) {
 		equals := p.previous()
 		value := p.assignment()
 		// 只有左侧计算的结果是Variable的时候，才会进行赋值语句
@@ -265,7 +270,7 @@ func (p *Parser) assignment() Expr {
 // logicOr -> logicAnd ( "or" logicAnd )*
 func (p *Parser) logicOr() Expr {
 	expr := p.logicAnd()
-	for p.match(scanner.OR) {
+	for p.match(token.OR) {
 		operator := p.previous()
 		right := p.logicAnd()
 		expr = NewLogic(expr, operator, right)
@@ -277,7 +282,7 @@ func (p *Parser) logicOr() Expr {
 // logicAnd -> equality ( "and" equality )*
 func (p *Parser) logicAnd() Expr {
 	expr := p.equality()
-	for p.match(scanner.AND) {
+	for p.match(token.AND) {
 		operator := p.previous()
 		right := p.equality()
 		expr = NewLogic(expr, operator, right)
@@ -289,7 +294,7 @@ func (p *Parser) logicAnd() Expr {
 // equality -> comparison ( ( "!=" | "==" ) comparison )*
 func (p *Parser) equality() Expr {
 	expr := p.comparison()
-	for p.match(scanner.BANG_EQUAL, scanner.EQUAL_EQUAL) {
+	for p.match(token.BANG_EQUAL, token.EQUAL_EQUAL) {
 		// match如果匹配，则会将current+1，之前的Token已经被consume掉了，所以下一行取的是之前的一个Token
 		// 后面同理
 		operator := p.previous()
@@ -304,7 +309,7 @@ func (p *Parser) equality() Expr {
 // comparison -> term ( (">" | ">=" | "<" | "<=") term )*
 func (p *Parser) comparison() Expr {
 	expr := p.term()
-	for p.match(scanner.GREATER, scanner.GREATER_EQUAL, scanner.LESS, scanner.LESS_EQUAL) {
+	for p.match(token.GREATER, token.GREATER_EQUAL, token.LESS, token.LESS_EQUAL) {
 		operator := p.previous()
 		right := p.term()
 		expr = NewBinary(expr, operator, right)
@@ -316,7 +321,7 @@ func (p *Parser) comparison() Expr {
 // term -> factor ( ("-" | "+") factor )*
 func (p *Parser) term() Expr {
 	expr := p.factor()
-	for p.match(scanner.MINUS, scanner.PLUS) {
+	for p.match(token.MINUS, token.PLUS) {
 		operator := p.previous()
 		right := p.factor()
 		expr = NewBinary(expr, operator, right)
@@ -328,7 +333,7 @@ func (p *Parser) term() Expr {
 // factor -> unary ( ("*" | "/") unary )*
 func (p *Parser) factor() Expr {
 	expr := p.unary()
-	for p.match(scanner.STAR, scanner.SLASH) {
+	for p.match(token.STAR, token.SLASH) {
 		operator := p.previous()
 		right := p.unary()
 		expr = NewBinary(expr, operator, right)
@@ -339,7 +344,7 @@ func (p *Parser) factor() Expr {
 
 // unary -> ("!" | "-") unary | call
 func (p *Parser) unary() Expr {
-	if p.match(scanner.BANG, scanner.MINUS) {
+	if p.match(token.BANG, token.MINUS) {
 		operator := p.previous()
 		right := p.unary()
 		return NewUnary(operator, right)
@@ -356,10 +361,10 @@ func (p *Parser) unary() Expr {
 func (p *Parser) call() Expr {
 	expr := p.primary()
 	for {
-		if p.match(scanner.LEFT_PAREN) {
+		if p.match(token.LEFT_PAREN) {
 			var arguments []Expr
 			// 当前Token如果不是 ")"，则说明有参数
-			if !p.check(scanner.RIGHT_PAREN) {
+			if !p.check(token.RIGHT_PAREN) {
 				for {
 					// 限制最大参数量为255
 					if len(arguments) >= 255 {
@@ -368,17 +373,17 @@ func (p *Parser) call() Expr {
 					// 添加参数
 					arguments = append(arguments, p.expression())
 					// 参数之间要以 "," 隔开
-					if !p.match(scanner.COMMA) {
+					if !p.match(token.COMMA) {
 						break
 					}
 				}
 			}
 			// consume掉 ")"
-			paren := p.consume(scanner.RIGHT_PAREN, "Expect ')' after arguments.")
+			paren := p.consume(token.RIGHT_PAREN, "Expect ')' after arguments.")
 			// 不断迭代expr
 			expr = NewCall(expr, paren, arguments)
-		} else if p.match(scanner.DOT) {
-			attribute := p.consume(scanner.IDENTIFIER, "Expect attribute name after '.'.")
+		} else if p.match(token.DOT) {
+			attribute := p.consume(token.IDENTIFIER, "Expect attribute name after '.'.")
 			// 还是不断迭代expr
 			expr = NewGet(expr, attribute)
 		} else {
@@ -392,31 +397,31 @@ func (p *Parser) call() Expr {
 
 // primary -> NUMBER | STRING | "true" | "false" | "nil" | "return" | "(" expression ")" ｜ IDENTIFIER
 func (p *Parser) primary() Expr {
-	if p.match(scanner.TRUE) {
+	if p.match(token.TRUE) {
 		return NewLiteral(true)
 	}
-	if p.match(scanner.FALSE) {
+	if p.match(token.FALSE) {
 		return NewLiteral(false)
 	}
-	if p.match(scanner.NIL) {
+	if p.match(token.NIL) {
 		return NewLiteral(nil)
 	}
 
-	if p.match(scanner.NUMBER, scanner.STRING) {
+	if p.match(token.NUMBER, token.STRING) {
 		return NewLiteral(p.previous().Literal)
 	}
 
-	if p.match(scanner.IDENTIFIER) {
+	if p.match(token.IDENTIFIER) {
 		return NewVariable(p.previous())
 	}
 
-	if p.match(scanner.THIS) {
+	if p.match(token.THIS) {
 		return NewThis(p.previous())
 	}
 
-	if p.match(scanner.LEFT_PAREN) {
+	if p.match(token.LEFT_PAREN) {
 		expr := p.expression()
-		p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")
+		p.consume(token.RIGHT_PAREN, "Expect ')' after expression.")
 		return NewGrouping(expr)
 	}
 

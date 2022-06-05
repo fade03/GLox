@@ -2,16 +2,16 @@ package interpreter
 
 import (
 	"GLox/lerror"
-	"GLox/scanner"
+	"GLox/scanner/token"
 	"fmt"
 )
 
 type RuntimeError struct {
-	token   *scanner.Token
+	token   *token.Token
 	message string
 }
 
-func NewRuntimeError(token *scanner.Token, message string) *RuntimeError {
+func NewRuntimeError(token *token.Token, message string) *RuntimeError {
 	return &RuntimeError{token: token, message: message}
 }
 
