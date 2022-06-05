@@ -40,9 +40,7 @@ func (r *Resolver) VisitVariableExpr(expr *parser.Variable) interface{} {
 	}
 
 	if prepared, ok := r.scopes.Peek().(Scope)[expr.Name.Lexeme]; ok && !prepared {
-		// lerror.Report(expr.Name.Line, expr.Name.Lexeme, "Can't read local variable in its own initializer.")
 		panic(interpreter.NewRuntimeError(expr.Name, "Can't read local variable in its own initializer."))
-		// return nil
 	}
 
 	r.resolveLocal(expr, expr.Name)
@@ -82,6 +80,15 @@ func (r *Resolver) VisitGetExpr(expr *parser.Get) interface {} {
 func (r *Resolver) VisitSetExpr(expr *parser.Set) interface{} {
 	r.resolveExpr(expr.Object)
 	r.resolveExpr(expr.Value)
+
+	return nil 
+}
+
+// VisitThisExpr: if "this" does not appear in a method, report an error.
+func (r *Resolver) VisitThisExpr(expr *parser.This) interface{} {
+	if currentClass != InClass {
+		panic(interpreter.NewRuntimeError(expr.Keyword, "Can't use 'this' outside of a class."))
+	}
 
 	return nil 
 }

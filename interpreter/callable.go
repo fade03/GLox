@@ -36,12 +36,13 @@ func (n *Native) String() string {
 // ################ Function Abstraction ###################
 
 type LoxFunction struct {
-	declaration *parser.FuncDeclStmt
-	closure     *Environment // 在函数体内部声明的函数
+	declaration   *parser.FuncDeclStmt
+	closure       *Environment
+	isInitializer bool
 }
 
-func NewLoxFunction(declaration *parser.FuncDeclStmt, closure *Environment) *LoxFunction {
-	return &LoxFunction{declaration: declaration, closure: closure}
+func NewLoxFunction(declaration *parser.FuncDeclStmt, closure *Environment, isInitializer bool) *LoxFunction {
+	return &LoxFunction{declaration: declaration, closure: closure, isInitializer: isInitializer}
 }
 
 func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}) {
@@ -50,9 +51,14 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (
 		if r, ok := recover().(*Return); ok && r != nil {
 			result = r.value
 		}
+
+		if lf.isInitializer {
+			result = lf.closure.getAt(0, "this")
+		}	
 	}()
 
-	// 创建函数自己的作用域，enclosing就是全局的函数 ~globals~
+
+	// 创建函数自己的作用域
 	env := NewEnvironment(lf.closure)
 	// 将形参和实参绑定起来
 	for i, arg := range arguments {
@@ -60,7 +66,20 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (
 	}
 	interpreter.executeBlock(lf.declaration.Body, env)
 
+	// init() always return "this"
+	if lf.isInitializer {
+		result = lf.closure.getAt(0, "this")
+	}
+
 	return result
+}
+
+// bind a instance for the method.
+func (lf *LoxFunction) bind(instance *LoxInstance) *LoxFunction {
+	environment := NewEnvironment(lf.closure)
+	environment.defineLiteral("this", instance)
+
+	return NewLoxFunction(lf.declaration, environment, lf.isInitializer)
 }
 
 func (lf *LoxFunction) Arity() int {

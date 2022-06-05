@@ -6,6 +6,8 @@ import (
 )
 
 func TestPrinter_Print(t *testing.T) {
+	
+
 	printer := new(Printer)
 
 	expr1 := NewBinary(NewLiteral(1),

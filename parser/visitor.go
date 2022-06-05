@@ -11,6 +11,7 @@ type ExprVisitor interface {
 	VisitCallExpr(expr *Call) interface{}
 	VisitGetExpr(expr *Get) interface{}
 	VisitSetExpr(expr *Set) interface{}
+	VisitThisExpr(expr *This) interface{}
 }
 
 // StmtVisitor 中定义的方法相当于直接执行语句，所以不会有返回值

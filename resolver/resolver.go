@@ -6,6 +6,11 @@ import (
 	"GLox/scanner"
 )
 
+var (
+	currentClass    ClassType    = None
+	currentCallable CallableType = None
+)
+
 // Parser -> Resolver -> Interpreter
 
 // Resolver implement ExprVisitor, StmtVisitor
@@ -38,7 +43,8 @@ func (r *Resolver) resolveLocal(expr parser.Expr, token *scanner.Token) {
 	}
 }
 
-func (r *Resolver) resolveFunction(stmt *parser.FuncDeclStmt) {
+func (r *Resolver) resolveFunction(stmt *parser.FuncDeclStmt, ct CallableType) {
+	currentCallable = ct
 	r.beginScope()
 	for _, param := range stmt.Params {
 		r.declare(param)

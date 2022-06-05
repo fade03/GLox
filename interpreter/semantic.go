@@ -139,7 +139,7 @@ func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
 	// 计算等号左侧的表达式，找出要复制的属性
 	object := i.evaluate(expr.Object)
 	instance, ok := object.(*LoxInstance)
-	
+
 	if !ok {
 		panic(NewRuntimeError(expr.Attribute, "Only instances have attributes."))
 	}
@@ -150,6 +150,10 @@ func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
 	return value
 }
 
+func (i *Interpreter) VisitThisExpr(expr *parser.This) interface{} {
+	return i.lookUpVariable(expr.Keyword, expr)
+}
+
 // ################### Statement #####################
 
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
@@ -158,7 +162,7 @@ func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 
 func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
-	function := NewLoxFunction(stmt, i.environment)
+	function := NewLoxFunction(stmt, i.environment, false)
 	i.environment.define(stmt.Name, function)
 }
 
@@ -207,6 +211,13 @@ func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
 
 func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 	i.environment.define(stmt.Name, nil)
-	class := NewLoxClass(stmt.Name.Lexeme)
+
+	// methods
+	var methods map[string]*LoxFunction = make(map[string]*LoxFunction)
+	for _, method := range stmt.Methods {
+		methods[method.Name.Lexeme] = NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
+	}
+
+	class := NewLoxClass(stmt.Name.Lexeme, methods)
 	i.environment.assign(stmt.Name, class)
 }

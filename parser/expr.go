@@ -137,3 +137,15 @@ func NewSet(Object Expr, Attribute *scanner.Token, Value Expr) *Set {
 func (s *Set) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitSetExpr(s)
 }
+
+type This struct {
+	Keyword *scanner.Token
+}
+
+func NewThis(keyword *scanner.Token) *This {
+	return &This{Keyword: keyword}
+}
+
+func (t *This) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitThisExpr(t)
+}

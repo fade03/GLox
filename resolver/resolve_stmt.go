@@ -1,6 +1,10 @@
 package resolver
 
-import "GLox/parser"
+import (
+	"GLox/interpreter"
+	"GLox/parser"
+	"GLox/utils"
+)
 
 func (r *Resolver) VisitExprStmt(stmt *parser.ExprStmt) {
 	r.resolveExpr(stmt.Expr)
@@ -41,15 +45,36 @@ func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
-	r.resolveFunction(stmt)
+	r.resolveFunction(stmt, Function)
 }
 
 func (r *Resolver) VisitReturnStmt(stmt *parser.ReturnStmt) {
-	r.resolveExpr(stmt.Value)
+	if stmt.Value != nil {
+		if currentCallable == Initializer {
+			panic(interpreter.NewRuntimeError(stmt.Keyword, "Can't return a value from initializer."))
+		}
+		r.resolveExpr(stmt.Value)
+	}
 }
 
 func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+	var enclosingClass ClassType = currentClass
+	currentClass = InClass
+
 	// Lox允许将一个类声明为局部变量
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
+
+	// 处理特殊的变量 "this"
+	r.beginScope()
+	r.scopes.Peek().(Scope)["this"] = true
+
+	// resolve类中的方法
+	for _, method := range stmt.Methods {
+		callableType := utils.Ternary[CallableType](method.Name.Lexeme == "init", Initializer, Method)
+		r.resolveFunction(method, callableType)
+	}
+
+	r.endScope()
+	currentClass = enclosingClass
 }

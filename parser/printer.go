@@ -60,7 +60,13 @@ func (p *Printer) VisitGetExpr(expr *Get) interface{} {
 }
 
 func (p *Printer) VisitSetExpr(expr *Set) interface{} {
-	// empty implementation
+	// empty implementation	
+
+	return nil
+}
+
+func (p *Printer) VisitThisExpr(expr *This) interface{} {
+	// empty implementation	
 
 	return nil
 }

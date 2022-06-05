@@ -1,0 +1,7 @@
+class Bar {
+    init() {
+        return;
+    }
+}
+
+print Bar().init();

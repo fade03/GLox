@@ -70,10 +70,4 @@ func run(sc string) {
 
 	r.ResolveStmt(stmts...)
 	i.Interpret(stmts)
-
-	//fmt.Println(new(parser.Printer).Print(expr))
-
-	//for _, token := range tokens {
-	//	fmt.Println(token)
-	//}
 }

@@ -410,6 +410,10 @@ func (p *Parser) primary() Expr {
 		return NewVariable(p.previous())
 	}
 
+	if p.match(scanner.THIS) {
+		return NewThis(p.previous())
+	}
+
 	if p.match(scanner.LEFT_PAREN) {
 		expr := p.expression()
 		p.consume(scanner.RIGHT_PAREN, "Expect ')' after expression.")

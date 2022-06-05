@@ -1,0 +1,12 @@
+class Foo {
+  init() {
+    this.bar = "bar";
+  }
+}
+
+var foo = Foo();
+print foo.bar;
+
+foo.init().id = 1;
+print foo.bar;
+print foo.id;
