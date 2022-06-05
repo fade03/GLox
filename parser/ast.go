@@ -51,7 +51,7 @@ func (p *Parser) varDecl() Stmt {
 // @param kind: "functionDecl" or "method"
 func (p *Parser) functionDecl(kind string) Stmt {
 	// 获取函数/方法名
-	name := p.consume(token.IDENTIFIER, "Expect"+kind+" name.")
+	name := p.consume(token.IDENTIFIER, "Expect "+kind+" name.")
 	p.consume(token.LEFT_PAREN, "Expect '(' after "+kind+" name.")
 	var parameters []*token.Token
 	if !p.check(token.RIGHT_PAREN) {

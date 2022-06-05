@@ -58,7 +58,7 @@ func runPrompt() {
 func run(sc string) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println(err.(error).Error())
+			log.Fatal(err.(error).Error())
 		}
 	}()
 

@@ -20,11 +20,11 @@ func (ls *LoxInstance) Get(attribute *token.Token) interface{} {
 		return field
 	}
 
-	if method, ok := ls.class.methods[attribute.Lexeme]; ok {
+	if method := ls.class.findMethod(attribute.Lexeme); method != nil {
 		return method.bind(ls)
 	}
 
-	panic(loxerror.NewRuntimeError(attribute, "undefined attribute "+attribute.Lexeme+"."))
+	panic(loxerror.NewRuntimeError(attribute, "undefined attribute '"+attribute.Lexeme+"'."))
 }
 
 func (ls *LoxInstance) String() string {

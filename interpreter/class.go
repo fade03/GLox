@@ -14,7 +14,7 @@ func NewLoxClass(name string, superclass *LoxClass, methods map[string]*LoxFunct
 // Call means "constructor", e.g. class Foo {}; print(Foo());
 func (lc *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) interface{} {
 	instance := NewLoxInstance(lc)
-	// init() will be called when a instance is initialized
+	// init() will be called when an instance is initialized
 	if initializer, ok := lc.methods["init"]; ok {
 		// 类中的方法首先要经过bind处理，为特殊变量this绑定值
 		initializer.bind(instance).Call(interpreter, arguments)
@@ -29,6 +29,18 @@ func (lc *LoxClass) Arity() int {
 	}
 
 	return 0
+}
+
+func (lc *LoxClass) findMethod(name string) *LoxFunction {
+	if method, ok := lc.methods[name]; ok {
+		return method
+	}
+
+	if lc.superclass != nil {
+		return lc.superclass.findMethod(name)
+	}
+
+	return nil
 }
 
 func (lc *LoxClass) String() string {

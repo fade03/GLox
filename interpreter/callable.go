@@ -1,6 +1,10 @@
 package interpreter
 
-import "GLox/parser"
+import (
+	"GLox/loxerror"
+	"GLox/parser"
+	"log"
+)
 
 type LoxCallableFunc func(interpreter *Interpreter, arguments []interface{}) interface{}
 
@@ -48,8 +52,13 @@ func NewLoxFunction(declaration *parser.FuncDeclStmt, closure *Environment, isIn
 func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}) {
 	// 捕获 return 语句
 	defer func() {
-		if r, ok := recover().(*Return); ok && r != nil {
-			result = r.value
+		if r := recover(); r != nil {
+			switch r.(type) {
+			case *Return:
+				result = r.(*Return).value
+			case *loxerror.RuntimeError:
+				log.Fatal(r.(error).Error())
+			}
 		}
 
 		if lf.isInitializer {
@@ -73,7 +82,7 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (
 	return result
 }
 
-// bind a instance for the method.
+// bind an instance for the method.
 func (lf *LoxFunction) bind(instance *LoxInstance) *LoxFunction {
 	environment := NewEnvironment(lf.closure)
 	environment.defineLiteral("this", instance)
