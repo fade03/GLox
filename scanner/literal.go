@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	"GLox/loxerror"
 	"GLox/scanner/token"
 	"strconv"
 )
@@ -15,7 +16,7 @@ func (s *Scanner) addStrLiteral() {
 	}
 
 	if s.isAtEnd() {
-		serror(s.line, "Unterminated string.")
+		loxerror.Report(s.line, "", "Unterminated string.")
 		return
 	}
 	// 注意这里要consume掉最后一个 " 号

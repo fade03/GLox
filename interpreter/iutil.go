@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"GLox/loxerror"
 	"GLox/scanner/token"
 )
 
@@ -31,7 +32,7 @@ func doPlus(operator *token.Token, left, right interface{}) interface{} {
 		return left.(string) + right.(string)
 	}
 
-	panic(NewRuntimeError(operator, "Operands must be two numbers or two strings."))
+	panic(loxerror.NewRuntimeError(operator, "Operands must be two numbers or two strings."))
 }
 
 func isEqual(left, right interface{}) bool {
@@ -50,7 +51,7 @@ func isEqual(left, right interface{}) bool {
 func checkNumberOperands(operator *token.Token, operands ...interface{}) {
 	for _, operand := range operands {
 		if _, ok := operand.(float64); !ok {
-			panic(NewRuntimeError(operator, "Operand must be a number."))
+			panic(loxerror.NewRuntimeError(operator, "Operand must be a number."))
 		}
 	}
 

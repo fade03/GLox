@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	le "GLox/loxerror"
 	"GLox/scanner/token"
 )
 
@@ -33,7 +34,7 @@ func (e *Environment) lookup(name *token.Token) interface{} {
 		return e.enclosing.lookup(name)
 	}
 
-	panic(NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
+	panic(le.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
 }
 
 func (e *Environment) assign(name *token.Token, value interface{}) {
@@ -51,7 +52,7 @@ func (e *Environment) assign(name *token.Token, value interface{}) {
 		return
 	}
 
-	panic(NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
+	panic(le.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
 
 }
 

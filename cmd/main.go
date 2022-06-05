@@ -12,9 +12,5 @@ func init() {
 }
 
 func main() {
-	if source != "" {
-		runFile(source)
-	} else {
-		runPrompt()
-	}
+	runApp(source)
 }

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"GLox/loxerror"
 	"GLox/scanner/token"
 )
 
@@ -59,7 +60,7 @@ func (p *Parser) consume(t token.TokenType, msg string) *token.Token {
 		return p.advance()
 	}
 
-	panic(NewParseError(p.peek(), msg))
+	panic(loxerror.NewParseError(p.peek(), msg))
 }
 
 func (p *Parser) synchronize() {

@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"GLox/interpreter"
+	le "GLox/loxerror"
 	"GLox/parser"
 )
 
@@ -40,7 +40,7 @@ func (r *Resolver) VisitVariableExpr(expr *parser.Variable) interface{} {
 	}
 
 	if prepared, ok := r.scopes.Peek().(Scope)[expr.Name.Lexeme]; ok && !prepared {
-		panic(interpreter.NewRuntimeError(expr.Name, "Can't read local variable in its own initializer."))
+		panic(le.NewRuntimeError(expr.Name, "Can't read local variable in its own initializer."))
 	}
 
 	r.resolveLocal(expr, expr.Name)
@@ -71,24 +71,24 @@ func (r *Resolver) VisitCallExpr(call *parser.Call) interface{} {
 	return nil
 }
 
-func (r *Resolver) VisitGetExpr(expr *parser.Get) interface {} {
+func (r *Resolver) VisitGetExpr(expr *parser.Get) interface{} {
 	r.resolveExpr(expr.Object)
 
-	return nil 
+	return nil
 }
 
 func (r *Resolver) VisitSetExpr(expr *parser.Set) interface{} {
 	r.resolveExpr(expr.Object)
 	r.resolveExpr(expr.Value)
 
-	return nil 
+	return nil
 }
 
-// VisitThisExpr: if "this" does not appear in a method, report an error.
+// VisitThisExpr : if "this" does not appear in a method, report an error.
 func (r *Resolver) VisitThisExpr(expr *parser.This) interface{} {
 	if currentClass != InClass {
-		panic(interpreter.NewRuntimeError(expr.Keyword, "Can't use 'this' outside of a class."))
+		panic(le.NewRuntimeError(expr.Keyword, "Can't use 'this' outside of a class."))
 	}
 
-	return nil 
+	return nil
 }

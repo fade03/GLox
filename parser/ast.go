@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"GLox/loxerror"
 	"GLox/scanner/token"
 	"GLox/utils"
 )
@@ -56,7 +57,7 @@ func (p *Parser) functionDecl(kind string) Stmt {
 	if !p.check(token.RIGHT_PAREN) {
 		for {
 			if len(parameters) >= 255 {
-				panic(NewParseError(p.peek(), "Can't have more than 255 parameters."))
+				panic(loxerror.NewParseError(p.peek(), "Can't have more than 255 parameters."))
 			}
 			// 获取参数名，Lox是动态类型，没有类型声明
 			parameters = append(parameters, p.consume(token.IDENTIFIER, "Expect parameter name."))
@@ -78,12 +79,13 @@ func (p *Parser) functionDecl(kind string) Stmt {
 // classDecl -> "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 func (p *Parser) classDecl() Stmt {
 	name := p.consume(token.IDENTIFIER, "Expect class name.")
-	p.consume(token.LEFT_BRACE, "Expect '{' before class body.")
 
 	var superclass *Variable
 	if p.match(token.LESS) {
 		superclass = NewVariable(p.consume(token.IDENTIFIER, "Expect superclass name after '<'."))
 	}
+
+	p.consume(token.LEFT_BRACE, "Expect '{' before class body.")
 
 	var methods []*FuncDeclStmt
 	for !p.check(token.RIGHT_BRACE) && !p.isAtEnd() {
@@ -260,7 +262,7 @@ func (p *Parser) assignment() Expr {
 			return NewSet(getter.Object, getter.Attribute, value)
 		}
 
-		panic(NewParseError(equals, "Invalid assignment target."))
+		panic(loxerror.NewParseError(equals, "Invalid assignment target."))
 	}
 
 	// 如果右侧没有初始化表达式，那么相当于是一个logicOr表达式
@@ -368,7 +370,7 @@ func (p *Parser) call() Expr {
 				for {
 					// 限制最大参数量为255
 					if len(arguments) >= 255 {
-						panic(NewParseError(p.peek(), "Can't have more than 255 arguments."))
+						panic(loxerror.NewParseError(p.peek(), "Can't have more than 255 arguments."))
 					}
 					// 添加参数
 					arguments = append(arguments, p.expression())
@@ -426,5 +428,5 @@ func (p *Parser) primary() Expr {
 	}
 
 	// 如果不匹配任何的primary文法，则panic
-	panic(NewParseError(p.peek(), "Expect expression."))
+	panic(loxerror.NewParseError(p.peek(), "Unknown expression."))
 }

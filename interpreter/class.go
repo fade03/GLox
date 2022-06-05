@@ -2,12 +2,13 @@ package interpreter
 
 // LoxClass implements LoxCallable, specific the constructor method.
 type LoxClass struct {
-	name string
-	methods map[string]*LoxFunction
+	name       string
+	superclass *LoxClass
+	methods    map[string]*LoxFunction
 }
 
-func NewLoxClass(name string, methods map[string]*LoxFunction) *LoxClass {
-	return &LoxClass{name: name, methods: methods}
+func NewLoxClass(name string, superclass *LoxClass, methods map[string]*LoxFunction) *LoxClass {
+	return &LoxClass{name: name, superclass: superclass, methods: methods}
 }
 
 // Call means "constructor", e.g. class Foo {}; print(Foo());
@@ -31,5 +32,9 @@ func (lc *LoxClass) Arity() int {
 }
 
 func (lc *LoxClass) String() string {
+	if lc.superclass != nil {
+		return "<class " + lc.name + " inherit " + lc.superclass.name + ">"
+	}
+
 	return "<class " + lc.name + ">"
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"GLox/interpreter"
-	le "GLox/lerror"
+	le "GLox/loxerror"
 	"GLox/parser"
 	"GLox/resolver"
 	"GLox/scanner"
@@ -12,6 +12,14 @@ import (
 	"log"
 	"os"
 )
+
+func runApp(source string) {
+	if source != "" {
+		runFile(source)
+	} else {
+		runPrompt()
+	}
+}
 
 func runFile(path string) {
 	bytes, err := ioutil.ReadFile(path)

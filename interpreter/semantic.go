@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	le "GLox/loxerror"
 	"GLox/parser"
 	"GLox/scanner/token"
 	"fmt"
@@ -107,7 +108,7 @@ func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
 	callee, ok := i.evaluate(call.Callee).(LoxCallable)
 	if !ok {
-		panic(NewRuntimeError(call.Paren, "Can only call functions and classes."))
+		panic(le.NewRuntimeError(call.Paren, "Can only call functions and classes."))
 	}
 
 	var args []interface{}
@@ -117,7 +118,7 @@ func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
 
 	// 判断实参和形参的个数是否相同
 	if len(args) != callee.Arity() {
-		panic(NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
+		panic(le.NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
 	}
 
 	return callee.Call(i, args)
@@ -129,7 +130,7 @@ func (i *Interpreter) VisitGetExpr(expr *parser.Get) interface{} {
 	instance, ok := object.(*LoxInstance)
 
 	if !ok {
-		panic(NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
 	}
 
 	return instance.Get(expr.Attribute)
@@ -141,7 +142,7 @@ func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
 	instance, ok := object.(*LoxInstance)
 
 	if !ok {
-		panic(NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
 	}
 
 	value := i.evaluate(expr.Value)
@@ -210,14 +211,23 @@ func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
 }
 
 func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
-	i.environment.define(stmt.Name, nil)
+	var superclass *LoxClass
+	if stmt.Superclass != nil {
+		tempV := i.evaluate(stmt.Superclass)
+		if tempC, ok := tempV.(*LoxClass); !ok {
+			panic(le.NewRuntimeError(stmt.Superclass.Name, "Superclass must be a class."))
+		} else {
+			superclass = tempC
+		}
+	}
 
+	i.environment.define(stmt.Name, nil)
 	// methods
-	var methods map[string]*LoxFunction = make(map[string]*LoxFunction)
+	var methods = make(map[string]*LoxFunction)
 	for _, method := range stmt.Methods {
 		methods[method.Name.Lexeme] = NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
 	}
 
-	class := NewLoxClass(stmt.Name.Lexeme, methods)
+	class := NewLoxClass(stmt.Name.Lexeme, superclass, methods)
 	i.environment.assign(stmt.Name, class)
 }

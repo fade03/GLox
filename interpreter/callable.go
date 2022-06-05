@@ -54,9 +54,8 @@ func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (
 
 		if lf.isInitializer {
 			result = lf.closure.getAt(0, "this")
-		}	
+		}
 	}()
-
 
 	// 创建函数自己的作用域
 	env := NewEnvironment(lf.closure)

@@ -1,0 +1,10 @@
+class SuperClass {}
+
+class SubClass < SuperClass {}
+
+print SuperClass;
+print SubClass;
+
+// result:
+// <class SuperClass>
+// <class SubClass inherit SuperClass>

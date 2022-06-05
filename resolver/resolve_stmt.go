@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"GLox/interpreter"
+	le "GLox/loxerror"
 	"GLox/parser"
 	"GLox/utils"
 )
@@ -51,19 +51,29 @@ func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 func (r *Resolver) VisitReturnStmt(stmt *parser.ReturnStmt) {
 	if stmt.Value != nil {
 		if currentCallable == Initializer {
-			panic(interpreter.NewRuntimeError(stmt.Keyword, "Can't return a value from initializer."))
+			panic(le.NewRuntimeError(stmt.Keyword, "Can't return a value from initializer."))
 		}
 		r.resolveExpr(stmt.Value)
 	}
 }
 
 func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
-	var enclosingClass ClassType = currentClass
+	var enclosingClass = currentClass
 	currentClass = InClass
 
 	// Lox允许将一个类声明为局部变量
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
+	//if stmt.Superclass != nil && stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme {
+	//	panic(le.NewRuntimeError(stmt.Superclass.Name, "A class can't inherit from itself."))
+	//}
+	if stmt.Superclass != nil {
+		if stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme {
+			panic(le.NewRuntimeError(stmt.Superclass.Name, "A class can't inherit from itself."))
+		} else {
+			r.resolveExpr(stmt.Superclass)
+		}
+	}
 
 	// 处理特殊的变量 "this"
 	r.beginScope()

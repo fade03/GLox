@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"GLox/loxerror"
 	"GLox/scanner/token"
 )
 
@@ -23,7 +24,7 @@ func (ls *LoxInstance) Get(attribute *token.Token) interface{} {
 		return method.bind(ls)
 	}
 
-	panic(NewRuntimeError(attribute, "undefined attribute "+attribute.Lexeme+"."))
+	panic(loxerror.NewRuntimeError(attribute, "undefined attribute "+attribute.Lexeme+"."))
 }
 
 func (ls *LoxInstance) String() string {
