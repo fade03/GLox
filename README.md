@@ -1,4 +1,4 @@
-_GLox is an interpreter for a toy language "Lox" based on Go._
+_🔨 GLox is an interpreter for a toy language "Lox" based on Go._
 
 "Lox" is a toy language for learning, so it may not be very performant.
 
