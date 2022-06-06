@@ -155,6 +155,14 @@ func (i *Interpreter) VisitThisExpr(expr *parser.This) interface{} {
 	return i.lookUpVariable(expr.Keyword, expr)
 }
 
+func (i *Interpreter) VisitSuperExpr(expr *parser.Super) interface{} {
+	superclass := i.lookUpVariable(expr.Keyword, expr).(*LoxClass)
+	instance := NewLoxInstance(superclass)
+	method := superclass.findMethod(expr.Identifier.Lexeme)
+
+	return method.bind(instance)
+}
+
 // ################### Statement #####################
 
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
@@ -222,6 +230,11 @@ func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 	}
 
 	i.environment.define(stmt.Name, nil)
+	// "super"的作用域位于methods的上层
+	if superclass != nil {
+		i.environment = NewEnvironment(i.environment)
+		i.environment.defineLiteral("super", superclass)
+	}
 	// methods
 	var methods = make(map[string]*LoxFunction)
 	for _, method := range stmt.Methods {
@@ -229,5 +242,9 @@ func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 	}
 
 	class := NewLoxClass(stmt.Name.Lexeme, superclass, methods)
+	if superclass != nil {
+		// 切换回原来的scoop
+		i.environment = i.environment.enclosing
+	}
 	i.environment.assign(stmt.Name, class)
 }

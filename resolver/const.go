@@ -9,5 +9,6 @@ const (
 	Function
 	Initializer
 	Method
-	InClass 
+	InClass
+	SubClass
 )

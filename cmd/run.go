@@ -75,7 +75,10 @@ func run(sc string) {
 
 	i := interpreter.NewInterpreter()
 	r := resolver.NewResolver(i)
-
 	r.ResolveStmt(stmts...)
+	if le.HadError {
+		return
+	}
+
 	i.Interpret(stmts)
 }

@@ -87,8 +87,20 @@ func (r *Resolver) VisitSetExpr(expr *parser.Set) interface{} {
 // VisitThisExpr : if "this" does not appear in a method, report an error.
 func (r *Resolver) VisitThisExpr(expr *parser.This) interface{} {
 	if currentClass != InClass {
-		panic(le.NewRuntimeError(expr.Keyword, "Can't use 'this' outside of a class."))
+		//panic(le.NewRuntimeError(expr.Keyword, "Can't use 'this' outside of a class."))
+		le.Report(expr.Keyword.Line, expr.Keyword.Lexeme, "Can't use 'this' outside of a class.")
 	}
 
+	return nil
+}
+
+func (r *Resolver) VisitSuperExpr(expr *parser.Super) interface{} {
+	if currentClass == None {
+		le.Report(expr.Keyword.Line, expr.Keyword.Lexeme, "Can't use 'super' outside of a class.")
+	} else if currentClass != SubClass {
+		le.Report(expr.Keyword.Line, expr.Keyword.Lexeme, "Can't use 'super' in a class without superclass.")
+	}
+
+	r.resolveLocal(expr, expr.Keyword)
 	return nil
 }

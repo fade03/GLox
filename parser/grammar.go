@@ -397,7 +397,8 @@ func (p *Parser) call() Expr {
 	return expr
 }
 
-// primary -> NUMBER | STRING | "true" | "false" | "nil" | "return" | "(" expression ")" ｜ IDENTIFIER
+// primary -> NUMBER | STRING | "true" | "false" | "nil" | "return" | "(" expression ")" ｜ IDENTIFIER | "this" | super "." IDENTIFIER
+// #### "super" isn't allowed to appear alone ###
 func (p *Parser) primary() Expr {
 	if p.match(token.TRUE) {
 		return NewLiteral(true)
@@ -419,6 +420,14 @@ func (p *Parser) primary() Expr {
 
 	if p.match(token.THIS) {
 		return NewThis(p.previous())
+	}
+
+	if p.match(token.SUPER) {
+		keyword := p.previous()
+		p.consume(token.DOT, "Expect '.' after 'super'.")
+		identifier := p.consume(token.IDENTIFIER, "Expect a identifier after '.'")
+
+		return NewSuper(keyword, identifier)
 	}
 
 	if p.match(token.LEFT_PAREN) {

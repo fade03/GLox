@@ -151,3 +151,16 @@ func NewThis(keyword *token.Token) *This {
 func (t *This) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitThisExpr(t)
 }
+
+type Super struct {
+	Keyword    *token.Token
+	Identifier *token.Token
+}
+
+func NewSuper(keyword, Identifier *token.Token) *Super {
+	return &Super{Keyword: keyword, Identifier: Identifier}
+}
+
+func (s *Super) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitSuperExpr(s)
+}

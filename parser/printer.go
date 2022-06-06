@@ -71,6 +71,12 @@ func (p *Printer) VisitThisExpr(expr *This) interface{} {
 	return nil
 }
 
+func (p *Printer) VisitSuperExpr(expr *Super) interface{} {
+	// empty implementation	
+
+	return nil
+}
+
 func (p *Printer) parenthesize(name string, exprs ...Expr) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(" + name)

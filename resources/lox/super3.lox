@@ -1,0 +1,13 @@
+class A {
+    hello() {
+        super.say();
+    }
+}
+
+class B {
+    walk() {
+        super.walk();
+    }
+}
+
+A().hello();
