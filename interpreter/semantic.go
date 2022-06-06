@@ -1,8 +1,9 @@
 package interpreter
 
 import (
+	le "GLox/loxerror"
 	"GLox/parser"
-	"GLox/scanner"
+	"GLox/scanner/token"
 	"fmt"
 )
 
@@ -10,34 +11,34 @@ func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) interface{} {
 	// (递归)计算左右子表达式的值
 	lv, rv := i.evaluate(expr.Left), i.evaluate(expr.Right)
 	switch expr.Operator.Type {
-	case scanner.MINUS:
+	case token.MINUS:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) - rv.(float64)
-	case scanner.STAR:
+	case token.STAR:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) * rv.(float64)
-	case scanner.SLASH:
+	case token.SLASH:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) / rv.(float64)
 	// 加法操作可以定义在数字和字符之上
-	case scanner.PLUS:
+	case token.PLUS:
 		return doPlus(expr.Operator, lv, rv)
-	case scanner.GREATER:
+	case token.GREATER:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) > rv.(float64)
-	case scanner.GREATER_EQUAL:
+	case token.GREATER_EQUAL:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) >= rv.(float64)
-	case scanner.LESS:
+	case token.LESS:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) < rv.(float64)
-	case scanner.LESS_EQUAL:
+	case token.LESS_EQUAL:
 		checkNumberOperands(expr.Operator, lv, rv)
 		return lv.(float64) <= rv.(float64)
 	// == 和 != 运算的结果是bool类型
-	case scanner.BANG_EQUAL:
+	case token.BANG_EQUAL:
 		return !isEqual(lv, rv)
-	case scanner.EQUAL_EQUAL:
+	case token.EQUAL_EQUAL:
 		return isEqual(lv, rv)
 	}
 	return nil
@@ -56,10 +57,10 @@ func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) interface{} {
 	// 先计算右侧表达式的值
 	rv := i.evaluate(expr.Right)
 	switch expr.Operator.Type {
-	case scanner.MINUS:
+	case token.MINUS:
 		checkNumberOperands(expr.Operator, rv)
 		return -(rv.(float64))
-	case scanner.BANG:
+	case token.BANG:
 		return !isTruth(rv)
 	}
 
@@ -91,7 +92,7 @@ func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) interface{} {
 
 func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 	left := i.evaluate(expr.Left)
-	if expr.Operator.Type == scanner.OR {
+	if expr.Operator.Type == token.OR {
 		if isTruth(left) {
 			return left
 		}
@@ -107,7 +108,7 @@ func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
 func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
 	callee, ok := i.evaluate(call.Callee).(LoxCallable)
 	if !ok {
-		panic(NewRuntimeError(call.Paren, "Can only call functions and classes."))
+		panic(le.NewRuntimeError(call.Paren, "Can only call functions and classes."))
 	}
 
 	var args []interface{}
@@ -117,11 +118,52 @@ func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
 
 	// 判断实参和形参的个数是否相同
 	if len(args) != callee.Arity() {
-		panic(NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
+		panic(le.NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
 	}
 
 	return callee.Call(i, args)
 }
+
+func (i *Interpreter) VisitGetExpr(expr *parser.Get) interface{} {
+	object := i.evaluate(expr.Object)
+	// object必须是一个Instance
+	instance, ok := object.(*LoxInstance)
+
+	if !ok {
+		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+	}
+
+	return instance.Get(expr.Attribute)
+}
+
+func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
+	// 计算等号左侧的表达式，找出要复制的属性
+	object := i.evaluate(expr.Object)
+	instance, ok := object.(*LoxInstance)
+
+	if !ok {
+		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+	}
+
+	value := i.evaluate(expr.Value)
+	instance.fields[expr.Attribute.Lexeme] = value
+
+	return value
+}
+
+func (i *Interpreter) VisitThisExpr(expr *parser.This) interface{} {
+	return i.lookUpVariable(expr.Keyword, expr)
+}
+
+func (i *Interpreter) VisitSuperExpr(expr *parser.Super) interface{} {
+	superclass := i.lookUpVariable(expr.Keyword, expr).(*LoxClass)
+	instance := NewLoxInstance(superclass)
+	method := superclass.findMethod(expr.Identifier.Lexeme)
+
+	return method.bind(instance)
+}
+
+// ################### Statement #####################
 
 func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 	i.evaluate(stmt.Expr)
@@ -129,7 +171,7 @@ func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
 
 func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
 	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
-	function := NewLoxFunction(stmt, i.environment)
+	function := NewLoxFunction(stmt, i.environment, false)
 	i.environment.define(stmt.Name, function)
 }
 
@@ -174,4 +216,35 @@ func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
 	for isTruth(i.evaluate(stmt.Condition)) {
 		i.execute(stmt.Body)
 	}
+}
+
+func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+	var superclass *LoxClass
+	if stmt.Superclass != nil {
+		tempV := i.evaluate(stmt.Superclass)
+		if tempC, ok := tempV.(*LoxClass); !ok {
+			panic(le.NewRuntimeError(stmt.Superclass.Name, "Superclass must be a class."))
+		} else {
+			superclass = tempC
+		}
+	}
+
+	i.environment.define(stmt.Name, nil)
+	// "super"的作用域位于methods的上层
+	if superclass != nil {
+		i.environment = NewEnvironment(i.environment)
+		i.environment.defineLiteral("super", superclass)
+	}
+	// methods
+	var methods = make(map[string]*LoxFunction)
+	for _, method := range stmt.Methods {
+		methods[method.Name.Lexeme] = NewLoxFunction(method, i.environment, method.Name.Lexeme == "init")
+	}
+
+	class := NewLoxClass(stmt.Name.Lexeme, superclass, methods)
+	if superclass != nil {
+		// 切换回原来的scoop
+		i.environment = i.environment.enclosing
+	}
+	i.environment.assign(stmt.Name, class)
 }

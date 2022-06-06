@@ -1,0 +1,26 @@
+class SuperClass {
+    init() {
+        this.name = "Super";
+    }
+
+    hello() {
+        return "hello "  + this.name;
+    }
+}
+
+class SubClass < SuperClass {
+    init() {
+        this.name = "Sub";
+    }
+}
+
+
+print SuperClass().hello();
+print SubClass().hello();
+
+
+// result:
+//   hello Super
+//   hello Sub
+
+

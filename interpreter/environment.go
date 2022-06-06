@@ -1,6 +1,9 @@
 package interpreter
 
-import "GLox/scanner"
+import (
+	le "GLox/loxerror"
+	"GLox/scanner/token"
+)
 
 // Environment 用来管理变量名->值之间的映射
 
@@ -13,15 +16,15 @@ func NewEnvironment(enclosing *Environment) *Environment {
 	return &Environment{enclosing: enclosing, values: make(map[string]interface{})}
 }
 
-func (e *Environment) define(name *scanner.Token, value interface{}) {
+func (e *Environment) define(name *token.Token, value interface{}) {
 	e.values[name.Lexeme] = value
 }
 
-func (e *Environment) defineStr(name string, value interface{}) {
+func (e *Environment) defineLiteral(name string, value interface{}) {
 	e.values[name] = value
 }
 
-func (e *Environment) lookup(name *scanner.Token) interface{} {
+func (e *Environment) lookup(name *token.Token) interface{} {
 	// 当存在作用域的时候，现在当前作用域查找
 	if value, exist := e.values[name.Lexeme]; exist {
 		return value
@@ -31,10 +34,10 @@ func (e *Environment) lookup(name *scanner.Token) interface{} {
 		return e.enclosing.lookup(name)
 	}
 
-	panic(NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
+	panic(le.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
 }
 
-func (e *Environment) assign(name *scanner.Token, value interface{}) {
+func (e *Environment) assign(name *token.Token, value interface{}) {
 	if _, exist := e.values[name.Lexeme]; exist {
 		e.values[name.Lexeme] = value
 		return
@@ -49,7 +52,7 @@ func (e *Environment) assign(name *scanner.Token, value interface{}) {
 		return
 	}
 
-	panic(NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
+	panic(le.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'."))
 
 }
 
@@ -66,6 +69,6 @@ func (e *Environment) getAt(distance int, name string) interface{} {
 	return e.ancestor(distance).values[name]
 }
 
-func (e *Environment) assignAt(distance int, token *scanner.Token, value interface{}) {
+func (e *Environment) assignAt(distance int, token *token.Token, value interface{}) {
 	e.ancestor(distance).values[token.Lexeme] = value
 }

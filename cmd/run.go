@@ -2,16 +2,23 @@ package main
 
 import (
 	"GLox/interpreter"
-	le "GLox/lerror"
+	le "GLox/loxerror"
 	"GLox/parser"
 	"GLox/resolver"
 	"GLox/scanner"
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 )
+
+func runApp(source string) {
+	if source != "" {
+		runFile(source)
+	} else {
+		fmt.Println("please specific the source code file.")
+	}
+}
 
 func runFile(path string) {
 	bytes, err := ioutil.ReadFile(path)
@@ -21,6 +28,7 @@ func runFile(path string) {
 	sc := string(bytes)
 
 	run(sc)
+
 	if le.HadError {
 		os.Exit(-1)
 	}
@@ -30,27 +38,10 @@ func runFile(path string) {
 	}
 }
 
-func runPrompt() {
-	for {
-		fmt.Print("> ")
-		line, _, err := bufio.NewReader(os.Stdin).ReadLine()
-		if err != nil {
-			log.Println(err)
-		}
-
-		if len(line) == 0 {
-			break
-		}
-
-		run(string(line))
-		le.HadError = false
-	}
-}
-
 func run(sc string) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println(err.(error).Error())
+			log.Fatal(err.(error).Error())
 		}
 	}()
 
@@ -67,13 +58,11 @@ func run(sc string) {
 
 	i := interpreter.NewInterpreter()
 	r := resolver.NewResolver(i)
-
 	r.ResolveStmt(stmts...)
+
+	if le.HadError {
+		return
+	}
+
 	i.Interpret(stmts)
-
-	//fmt.Println(new(parser.Printer).Print(expr))
-
-	//for _, token := range tokens {
-	//	fmt.Println(token)
-	//}
 }

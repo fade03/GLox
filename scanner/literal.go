@@ -1,6 +1,10 @@
 package scanner
 
-import "strconv"
+import (
+	"GLox/loxerror"
+	"GLox/scanner/token"
+	"strconv"
+)
 
 // addStrLiteral 获取source中的字符串字面量
 func (s *Scanner) addStrLiteral() {
@@ -12,13 +16,13 @@ func (s *Scanner) addStrLiteral() {
 	}
 
 	if s.isAtEnd() {
-		serror(s.line, "Unterminated string.")
+		loxerror.Report(s.line, "", "Unterminated string.")
 		return
 	}
 	// 注意这里要consume掉最后一个 " 号
 	s.advance()
 	// 实际的字符串字面量要去掉左右的 " 号，所以是start+1:current-1
-	s.addToken(STRING, s.source[s.start+1:s.current-1])
+	s.addToken(token.STRING, s.source[s.start+1:s.current-1])
 }
 
 func (s *Scanner) addNumberLiteral() {
@@ -35,5 +39,5 @@ func (s *Scanner) addNumberLiteral() {
 	}
 
 	literal, _ := strconv.ParseFloat(s.source[s.start:s.current], 64)
-	s.addToken(NUMBER, literal)
+	s.addToken(token.NUMBER, literal)
 }

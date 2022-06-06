@@ -2,7 +2,7 @@ package interpreter
 
 import (
 	"GLox/parser"
-	"GLox/scanner"
+	"GLox/scanner/token"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	g := NewEnvironment(nil)
-	g.defineStr("clock", NewLoxCallableImpl(func(interpreter *Interpreter, arguments []interface{}) interface{} {
+	g.defineLiteral("clock", NewLoxCallableImpl(func(interpreter *Interpreter, arguments []interface{}) interface{} {
 		return time.Now().Unix()
 	}, 0))
 
@@ -59,7 +59,7 @@ func (i *Interpreter) Resolve(expr parser.Expr, depth int) {
 	i.locals[expr] = depth
 }
 
-func (i *Interpreter) lookUpVariable(token *scanner.Token, expr parser.Expr) interface{} {
+func (i *Interpreter) lookUpVariable(token *token.Token, expr parser.Expr) interface{} {
 	if distance, ok := i.locals[expr]; ok {
 		return i.environment.getAt(distance, token.Lexeme)
 	}

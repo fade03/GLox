@@ -7,14 +7,10 @@ import (
 var source string
 
 func init() {
-	flag.StringVar(&source, "s", "", "Lox source code file")
+	flag.StringVar(&source, "s", "", "Lox source code file path")
 	flag.Parse()
 }
 
 func main() {
-	if source != "" {
-		runFile(source)
-	} else {
-		runPrompt()
-	}
+	runApp(source)
 }

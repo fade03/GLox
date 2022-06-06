@@ -1,0 +1,8 @@
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
+}
+
+// Get expression + Call expression
+Bacon().eat();

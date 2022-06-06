@@ -1,20 +1,21 @@
 package parser
 
 import (
-	"GLox/scanner"
+	"GLox/loxerror"
+	"GLox/scanner/token"
 )
 
 type Parser struct {
-	tokens  []*scanner.Token
+	tokens  []*token.Token
 	current int
 }
 
-func NewParser(tokens []*scanner.Token) *Parser {
+func NewParser(tokens []*token.Token) *Parser {
 	return &Parser{tokens: tokens}
 }
 
 // match 逻辑上是OR的关系，只要匹配到current指向的Token和任意一个传入的Token匹配就会返回true，并且会将current+1
-func (p *Parser) match(types ...scanner.TokenType) bool {
+func (p *Parser) match(types ...token.TokenType) bool {
 	for _, t := range types {
 		if p.check(t) {
 			p.advance()
@@ -26,7 +27,7 @@ func (p *Parser) match(types ...scanner.TokenType) bool {
 }
 
 // check 判断current指向的Token类型和传入的类型t是否匹配
-func (p *Parser) check(t scanner.TokenType) bool {
+func (p *Parser) check(t token.TokenType) bool {
 	if p.isAtEnd() {
 		return false
 	}
@@ -37,11 +38,11 @@ func (p *Parser) isAtEnd() bool {
 	return p.current >= len(p.tokens)-1
 }
 
-func (p *Parser) peek() *scanner.Token {
+func (p *Parser) peek() *token.Token {
 	return p.tokens[p.current]
 }
 
-func (p *Parser) advance() *scanner.Token {
+func (p *Parser) advance() *token.Token {
 	if p.isAtEnd() {
 		return p.tokens[len(p.tokens)-1]
 	}
@@ -49,17 +50,17 @@ func (p *Parser) advance() *scanner.Token {
 	return p.previous()
 }
 
-func (p *Parser) previous() *scanner.Token {
+func (p *Parser) previous() *token.Token {
 	return p.tokens[p.current-1]
 }
 
 // 判断current指向的Token是不是传入的t，如果不是则panic，如果是则返回当前token，然后current+1
-func (p *Parser) consume(t scanner.TokenType, msg string) *scanner.Token {
+func (p *Parser) consume(t token.TokenType, msg string) *token.Token {
 	if p.check(t) {
 		return p.advance()
 	}
 
-	panic(NewParseError(p.peek(), msg))
+	panic(loxerror.NewParseError(p.peek(), msg))
 }
 
 func (p *Parser) synchronize() {

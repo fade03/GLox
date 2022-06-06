@@ -1,6 +1,8 @@
 package parser
 
-import "GLox/scanner"
+import (
+	"GLox/scanner/token"
+)
 
 type Expr interface {
 	Accept(visitor ExprVisitor) interface{}
@@ -8,11 +10,11 @@ type Expr interface {
 
 type Binary struct {
 	Left     Expr
-	Operator *scanner.Token
+	Operator *token.Token
 	Right    Expr
 }
 
-func NewBinary(left Expr, operator *scanner.Token, right Expr) *Binary {
+func NewBinary(left Expr, operator *token.Token, right Expr) *Binary {
 	return &Binary{left, operator, right}
 }
 
@@ -45,11 +47,11 @@ func (l *Literal) Accept(visitor ExprVisitor) interface{} {
 }
 
 type Unary struct {
-	Operator *scanner.Token
+	Operator *token.Token
 	Right    Expr
 }
 
-func NewUnary(operator *scanner.Token, right Expr) *Unary {
+func NewUnary(operator *token.Token, right Expr) *Unary {
 	return &Unary{operator, right}
 }
 
@@ -59,10 +61,10 @@ func (u *Unary) Accept(visitor ExprVisitor) interface{} {
 
 // Variable 也是表达式的一部分
 type Variable struct {
-	Name *scanner.Token
+	Name *token.Token
 }
 
-func NewVariable(name *scanner.Token) *Variable {
+func NewVariable(name *token.Token) *Variable {
 	return &Variable{Name: name}
 }
 
@@ -71,11 +73,11 @@ func (v *Variable) Accept(visitor ExprVisitor) interface{} {
 }
 
 type Assign struct {
-	Name  *scanner.Token
+	Name  *token.Token
 	Value Expr
 }
 
-func NewAssign(name *scanner.Token, value Expr) *Assign {
+func NewAssign(name *token.Token, value Expr) *Assign {
 	return &Assign{Name: name, Value: value}
 }
 
@@ -85,11 +87,11 @@ func (a *Assign) Accept(visitor ExprVisitor) interface{} {
 
 type Logic struct {
 	Left     Expr
-	Operator *scanner.Token
+	Operator *token.Token
 	Right    Expr
 }
 
-func NewLogic(left Expr, operator *scanner.Token, right Expr) *Logic {
+func NewLogic(left Expr, operator *token.Token, right Expr) *Logic {
 	return &Logic{Left: left, Operator: operator, Right: right}
 }
 
@@ -99,14 +101,66 @@ func (l *Logic) Accept(visitor ExprVisitor) interface{} {
 
 type Call struct {
 	Callee    Expr
-	Paren     *scanner.Token
+	Paren     *token.Token
 	Arguments []Expr
 }
 
-func NewCall(callee Expr, paren *scanner.Token, arguments []Expr) *Call {
+func NewCall(callee Expr, paren *token.Token, arguments []Expr) *Call {
 	return &Call{Callee: callee, Paren: paren, Arguments: arguments}
 }
 
 func (c *Call) Accept(visitor ExprVisitor) interface{} {
 	return visitor.VisitCallExpr(c)
+}
+
+type Get struct {
+	Object    Expr
+	Attribute *token.Token
+}
+
+func NewGet(object Expr, attribute *token.Token) *Get {
+	return &Get{Object: object, Attribute: attribute}
+}
+
+func (g *Get) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitGetExpr(g)
+}
+
+type Set struct {
+	Object    Expr
+	Attribute *token.Token
+	Value     Expr
+}
+
+func NewSet(Object Expr, Attribute *token.Token, Value Expr) *Set {
+	return &Set{Object: Object, Attribute: Attribute, Value: Value}
+}
+
+func (s *Set) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitSetExpr(s)
+}
+
+type This struct {
+	Keyword *token.Token
+}
+
+func NewThis(keyword *token.Token) *This {
+	return &This{Keyword: keyword}
+}
+
+func (t *This) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitThisExpr(t)
+}
+
+type Super struct {
+	Keyword    *token.Token
+	Identifier *token.Token
+}
+
+func NewSuper(keyword, Identifier *token.Token) *Super {
+	return &Super{Keyword: keyword, Identifier: Identifier}
+}
+
+func (s *Super) Accept(visitor ExprVisitor) interface{} {
+	return visitor.VisitSuperExpr(s)
 }
