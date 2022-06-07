@@ -29,10 +29,6 @@ func runFile(path string) {
 
 	run(sc)
 
-	if le.HadError {
-		os.Exit(-1)
-	}
-
 	if le.HadRuntimeError {
 		os.Exit(-2)
 	}
@@ -49,11 +45,9 @@ func run(sc string) {
 	tokens := s.ScanTokens()
 
 	p := parser.NewParser(tokens)
-	stmts := p.Parse()
-
-	// 如果有语法错误直接返回，不把错误的信息带给解释器
-	if le.HadError {
-		return
+	stmts, err := p.Parse()
+	if err != nil {
+		fatal(err.Error(), -1)
 	}
 
 	i := interpreter.NewInterpreter()
@@ -65,4 +59,9 @@ func run(sc string) {
 	}
 
 	i.Interpret(stmts)
+}
+
+func fatal(msg string, n int) {
+	fmt.Println(msg)
+	os.Exit(n)
 }

@@ -55,12 +55,13 @@ func (p *Parser) previous() *token.Token {
 }
 
 // 判断current指向的Token是不是传入的t，如果不是则panic，如果是则返回当前token，然后current+1
-func (p *Parser) consume(t token.TokenType, msg string) *token.Token {
+func (p *Parser) consume(t token.TokenType, msg string) (*token.Token, error) {
 	if p.check(t) {
-		return p.advance()
+		return p.advance(), nil
 	}
 
-	panic(loxerror.NewParseError(p.peek(), msg))
+	//panic(loxerror.NewParseError(p.peek(), msg))
+	return nil, loxerror.NewParseError(p.peek(), msg)
 }
 
 func (p *Parser) synchronize() {
@@ -68,11 +69,16 @@ func (p *Parser) synchronize() {
 }
 
 // Parse 将一个程序（Token序列）解析成多个Stmt
-func (p *Parser) Parse() (stmts []Stmt) {
+func (p *Parser) Parse() (stmts []Stmt, err error) {
 	// 一个程序由多个declaration + EOF组成: program -> declaration* EOF
 	for !p.isAtEnd() {
-		stmts = append(stmts, p.declaration())
+		stmt, err := p.declaration()
+		if err != nil {
+			return nil, err
+		}
+
+		stmts = append(stmts, stmt)
 	}
 
-	return stmts
+	return stmts, nil
 }

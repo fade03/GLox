@@ -4,7 +4,7 @@ _🔨 GLox is an interpreter for a toy language "Lox" based on Go._
 
 It combines functional and object-oriented features, and supports basic features such as arithmetic operations and control flow (you can see some Lox code in `resources/lox` folder).
 
-The interpreter is not full-tested, so there may be some bugs, once I find one, I will fix it as soon as possible.
+The interpreter is not fully tested, so there may be some bugs, once I find one, I will fix it as soon as possible.
 
 Usage:
 ```
