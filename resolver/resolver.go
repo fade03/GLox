@@ -25,12 +25,12 @@ func NewResolver(interpreter *interpreter.Interpreter) *Resolver {
 
 func (r *Resolver) ResolveStmt(statements ...parser.Stmt) {
 	for _, statement := range statements {
-		statement.Accept(r)
+		_ = statement.Accept(r)
 	}
 }
 
 func (r *Resolver) resolveExpr(expr parser.Expr) {
-	expr.Accept(r)
+	_, _ = expr.Accept(r)
 }
 
 func (r *Resolver) resolveLocal(expr parser.Expr, token *token.Token) {

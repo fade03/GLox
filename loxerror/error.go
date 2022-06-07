@@ -7,7 +7,7 @@ import (
 
 var (
 	HadError        = false
-	HadRuntimeError = false
+	HadResolveError = false
 )
 
 type ParseError struct {
@@ -22,9 +22,9 @@ func NewParseError(token *token.Token, message string) *ParseError {
 func (e *ParseError) Error() string {
 	HadError = true
 	if e.token.Type == token.EOF {
-		return fmt.Sprintf("line %d at end %s", e.token.Line, e.message)
+		return fmt.Sprintf("[parse error] line %d at EOF: %s", e.token.Line, e.message)
 	}
-	return fmt.Sprintf("line %d at '%s': %s", e.token.Line, e.token.Lexeme, e.message)
+	return fmt.Sprintf("[parse error] line %d at '%s': %s", e.token.Line, e.token.Lexeme, e.message)
 }
 
 // #########################
@@ -39,6 +39,5 @@ func NewRuntimeError(token *token.Token, message string) *RuntimeError {
 }
 
 func (r *RuntimeError) Error() string {
-	HadRuntimeError = true
 	return fmt.Sprintf("Runtime error at line %d : %s", r.token.Line, r.message)
 }

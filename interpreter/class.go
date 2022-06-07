@@ -12,15 +12,18 @@ func NewLoxClass(name string, superclass *LoxClass, methods map[string]*LoxFunct
 }
 
 // Call means "constructor", e.g. class Foo {}; print(Foo());
-func (lc *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) interface{} {
+func (lc *LoxClass) Call(interpreter *Interpreter, arguments []interface{}) (interface{}, error) {
 	instance := NewLoxInstance(lc)
 	// init() will be called when an instance is initialized
 	if initializer, ok := lc.methods["init"]; ok {
 		// 类中的方法首先要经过bind处理，为特殊变量this绑定值
-		initializer.bind(instance).Call(interpreter, arguments)
+		_, err := initializer.bind(instance).Call(interpreter, arguments)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return instance
+	return instance, nil
 }
 
 func (lc *LoxClass) Arity() int {

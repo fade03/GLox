@@ -7,74 +7,124 @@ import (
 	"fmt"
 )
 
-func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) interface{} {
+func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) (interface{}, error) {
 	// (递归)计算左右子表达式的值
-	lv, rv := i.evaluate(expr.Left), i.evaluate(expr.Right)
+	//lv, rv := i.evaluate(expr.Left), i.evaluate(expr.Right)
+	lv, err := i.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	rv, err := i.evaluate(expr.Right)
+	if err != nil {
+		return nil, err
+	}
+
 	switch expr.Operator.Type {
 	case token.MINUS:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) - rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) - rv.(float64), nil
 	case token.STAR:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) * rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) * rv.(float64), nil
 	case token.SLASH:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) / rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) / rv.(float64), nil
 	// 加法操作可以定义在数字和字符之上
 	case token.PLUS:
 		return doPlus(expr.Operator, lv, rv)
 	case token.GREATER:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) > rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) > rv.(float64), nil
 	case token.GREATER_EQUAL:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) >= rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) >= rv.(float64), nil
 	case token.LESS:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) < rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) < rv.(float64), nil
 	case token.LESS_EQUAL:
-		checkNumberOperands(expr.Operator, lv, rv)
-		return lv.(float64) <= rv.(float64)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return lv.(float64) <= rv.(float64), nil
 	// == 和 != 运算的结果是bool类型
 	case token.BANG_EQUAL:
-		return !isEqual(lv, rv)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return !isEqual(lv, rv), nil
 	case token.EQUAL_EQUAL:
-		return isEqual(lv, rv)
+		err = checkNumberOperands(expr.Operator, lv, rv)
+		if err != nil {
+			return nil, err
+		}
+		return isEqual(lv, rv), nil
 	}
-	return nil
+	return nil, nil
 }
 
-func (i *Interpreter) VisitGroupingExpr(expr *parser.Grouping) interface{} {
+func (i *Interpreter) VisitGroupingExpr(expr *parser.Grouping) (interface{}, error) {
 	// 计算中间部分的expression即可
 	return i.evaluate(expr.Expression)
 }
 
-func (i *Interpreter) VisitLiteralExpr(expr *parser.Literal) interface{} {
-	return expr.Value
+func (i *Interpreter) VisitLiteralExpr(expr *parser.Literal) (interface{}, error) {
+	return expr.Value, nil
 }
 
-func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) interface{} {
-	// 先计算右侧表达式的值
-	rv := i.evaluate(expr.Right)
-	switch expr.Operator.Type {
-	case token.MINUS:
-		checkNumberOperands(expr.Operator, rv)
-		return -(rv.(float64))
-	case token.BANG:
-		return !isTruth(rv)
+func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) (interface{}, error) {
+	// 先计算右侧表达式的值，如果有运行时错误，直接返回
+	rv, err := i.evaluate(expr.Right)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	switch expr.Operator.Type {
+	case token.MINUS:
+		err := checkNumberOperands(expr.Operator, rv)
+		if err != nil {
+			return nil, err
+		}
+
+		return -(rv.(float64)), nil
+	case token.BANG:
+		return !isTruth(rv), nil
+	}
+
+	return nil, nil
 }
 
-func (i *Interpreter) VisitVariableExpr(expr *parser.Variable) interface{} {
+func (i *Interpreter) VisitVariableExpr(expr *parser.Variable) (interface{}, error) {
 	// return i.environment.lookup(expr.Name)
 	return i.lookUpVariable(expr.Name, expr)
 }
 
-func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) interface{} {
+func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) (interface{}, error) {
 	// 计算Assign的语法树上的value节点
-	value := i.evaluate(expr.Value)
+	value, err := i.evaluate(expr.Value)
+	if err != nil {
+		return nil, err
+	}
 	/*
 		i.environment.assign(expr.Name, value)
 
@@ -84,146 +134,221 @@ func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) interface{} {
 	if distance, ok := i.locals[expr]; ok {
 		i.environment.assignAt(distance, expr.Name, value)
 	} else {
-		i.globals.assign(expr.Name, value)
+		err := i.globals.assign(expr.Name, value)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) interface{} {
-	left := i.evaluate(expr.Left)
+func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) (interface{}, error) {
+	left, err := i.evaluate(expr.Left)
+	if err != nil {
+		return nil, err
+	}
+
 	if expr.Operator.Type == token.OR {
 		if isTruth(left) {
-			return left
+			return left, nil
 		}
 	} else {
 		if !isTruth(left) {
-			return left
+			return left, nil
 		}
 	}
 
 	return i.evaluate(expr.Right)
 }
 
-func (i *Interpreter) VisitCallExpr(call *parser.Call) interface{} {
-	callee, ok := i.evaluate(call.Callee).(LoxCallable)
+func (i *Interpreter) VisitCallExpr(expr *parser.Call) (interface{}, error) {
+	//callee, ok := i.evaluate(expr.Callee).(LoxCallable)
+	calleeI, err := i.evaluate(expr.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	callee, ok := calleeI.(LoxCallable)
 	if !ok {
-		panic(le.NewRuntimeError(call.Paren, "Can only call functions and classes."))
+		//panic(le.NewRuntimeError(expr.Paren, "Can only call functions and classes."))
+		return nil, le.NewRuntimeError(expr.Paren, "Can only call functions and classes.")
 	}
 
 	var args []interface{}
-	for _, arg := range call.Arguments {
-		args = append(args, i.evaluate(arg))
+	for _, arg := range expr.Arguments {
+		value, err := i.evaluate(arg)
+		if err != nil {
+			return nil, err
+		}
+
+		args = append(args, value)
 	}
 
 	// 判断实参和形参的个数是否相同
 	if len(args) != callee.Arity() {
-		panic(le.NewRuntimeError(call.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
+		//panic(le.NewRuntimeError(expr.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity())))
+		return nil, le.NewRuntimeError(expr.Paren, fmt.Sprintf("Expect %d arguments buf got %d.", len(args), callee.Arity()))
 	}
 
 	return callee.Call(i, args)
 }
 
-func (i *Interpreter) VisitGetExpr(expr *parser.Get) interface{} {
-	object := i.evaluate(expr.Object)
+func (i *Interpreter) VisitGetExpr(expr *parser.Get) (interface{}, error) {
+	object, err := i.evaluate(expr.Object)
+	if err != nil {
+		return nil, err
+	}
+
 	// object必须是一个Instance
 	instance, ok := object.(*LoxInstance)
-
 	if !ok {
-		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+		//panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+		return nil, le.NewRuntimeError(expr.Attribute, "Only instances have attributes.")
 	}
 
 	return instance.Get(expr.Attribute)
 }
 
-func (i *Interpreter) VisitSetExpr(expr *parser.Set) interface{} {
+func (i *Interpreter) VisitSetExpr(expr *parser.Set) (interface{}, error) {
 	// 计算等号左侧的表达式，找出要复制的属性
-	object := i.evaluate(expr.Object)
-	instance, ok := object.(*LoxInstance)
-
-	if !ok {
-		panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+	object, err := i.evaluate(expr.Object)
+	if err != nil {
+		return nil, err
 	}
 
-	value := i.evaluate(expr.Value)
+	instance, ok := object.(*LoxInstance)
+	if !ok {
+		//panic(le.NewRuntimeError(expr.Attribute, "Only instances have attributes."))
+		return nil, le.NewRuntimeError(expr.Attribute, "Only instances have attributes.")
+	}
+
+	value, err := i.evaluate(expr.Value)
+	if err != nil {
+		return nil, err
+	}
+
 	instance.fields[expr.Attribute.Lexeme] = value
 
-	return value
+	return value, nil
 }
 
-func (i *Interpreter) VisitThisExpr(expr *parser.This) interface{} {
+func (i *Interpreter) VisitThisExpr(expr *parser.This) (interface{}, error) {
 	return i.lookUpVariable(expr.Keyword, expr)
 }
 
-func (i *Interpreter) VisitSuperExpr(expr *parser.Super) interface{} {
-	superclass := i.lookUpVariable(expr.Keyword, expr).(*LoxClass)
+func (i *Interpreter) VisitSuperExpr(expr *parser.Super) (interface{}, error) {
+	//superclass := i.lookUpVariable(expr.Keyword, expr).(*LoxClass)
+	superclassI, err := i.lookUpVariable(expr.Keyword, expr)
+	if err != nil {
+		return nil, err
+	}
+
+	superclass := superclassI.(*LoxClass)
 	instance := NewLoxInstance(superclass)
 	method := superclass.findMethod(expr.Identifier.Lexeme)
 
-	return method.bind(instance)
+	return method.bind(instance), nil
 }
 
 // ################### Statement #####################
 
-func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) {
-	i.evaluate(stmt.Expr)
+func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) error {
+	_, err := i.evaluate(stmt.Expr)
+
+	return err
 }
 
-func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
+func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) error {
 	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
 	function := NewLoxFunction(stmt, i.environment, false)
 	i.environment.define(stmt.Name, function)
+
+	return nil
 }
 
-func (i *Interpreter) VisitReturnStmt(stmt *parser.ReturnStmt) {
+func (i *Interpreter) VisitReturnStmt(stmt *parser.ReturnStmt) (err error) {
 	var value interface{}
 	if stmt.Value != nil {
-		value = i.evaluate(stmt.Value)
+		value, err = i.evaluate(stmt.Value)
+		if err != nil {
+			return err
+		}
 	}
 
 	panic(NewReturn(value))
 }
 
-func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) {
-	value := i.evaluate(stmt.Expr)
+func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) error {
+	value, err := i.evaluate(stmt.Expr)
+	if err != nil {
+		return err
+	}
+
 	// 需要打印计算的值
 	fmt.Printf("%v\n", value)
+
+	return nil
 }
 
-func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) {
+func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) (err error) {
 	var value interface{}
 	if stmt.Initializer != nil {
 		// 对变量的初始化语句求值
-		value = i.evaluate(stmt.Initializer)
+		value, err = i.evaluate(stmt.Initializer)
+		if err != nil {
+			return err
+		}
 	}
 	i.environment.define(stmt.Name, value)
+
+	return nil
 }
 
-func (i *Interpreter) VisitBlockStmt(stmt *parser.BlockStmt) {
+func (i *Interpreter) VisitBlockStmt(stmt *parser.BlockStmt) error {
 	// 把当前作用域的env传入下一个block
-	i.executeBlock(stmt, NewEnvironment(i.environment))
+	return i.executeBlock(stmt, NewEnvironment(i.environment))
 }
 
-func (i *Interpreter) VisitIfStmt(stmt *parser.IfStmt) {
-	if isTruth(i.evaluate(stmt.Condition)) {
-		i.execute(stmt.ThenBranch)
+func (i *Interpreter) VisitIfStmt(stmt *parser.IfStmt) error {
+	condition, err := i.evaluate(stmt.Condition)
+	if err != nil {
+		return err
+	}
+
+	if isTruth(condition) {
+		return i.execute(stmt.ThenBranch)
 	} else if stmt.ElseBranch != nil {
-		i.execute(stmt.ThenBranch)
+		return i.execute(stmt.ElseBranch)
 	}
+
+	return nil
 }
 
-func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) {
-	for isTruth(i.evaluate(stmt.Condition)) {
-		i.execute(stmt.Body)
+func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) error {
+	condition, err := i.evaluate(stmt.Condition)
+	if err != nil {
+		return err
 	}
+
+	for isTruth(condition) {
+		return i.execute(stmt.Body)
+	}
+
+	return nil
 }
 
-func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) error {
 	var superclass *LoxClass
 	if stmt.Superclass != nil {
-		tempV := i.evaluate(stmt.Superclass)
+		tempV, err := i.evaluate(stmt.Superclass)
+		if err != nil {
+			return err
+		}
+
 		if tempC, ok := tempV.(*LoxClass); !ok {
-			panic(le.NewRuntimeError(stmt.Superclass.Name, "Superclass must be a class."))
+			//panic(le.NewRuntimeError(stmt.Superclass.Name, "Superclass must be a class."))
+			return le.NewRuntimeError(stmt.Superclass.Name, "Superclass must be a class.")
 		} else {
 			superclass = tempC
 		}
@@ -246,5 +371,6 @@ func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 		// 切换回原来的scoop
 		i.environment = i.environment.enclosing
 	}
-	i.environment.assign(stmt.Name, class)
+
+	return i.environment.assign(stmt.Name, class)
 }

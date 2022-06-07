@@ -5,7 +5,7 @@ import (
 )
 
 type Stmt interface {
-	Accept(visitor StmtVisitor)
+	Accept(visitor StmtVisitor) error
 }
 
 type ExprStmt struct {
@@ -16,8 +16,8 @@ func NewExprStmt(expr Expr) *ExprStmt {
 	return &ExprStmt{expr}
 }
 
-func (e *ExprStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitExprStmt(e)
+func (e *ExprStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitExprStmt(e)
 }
 
 type FuncDeclStmt struct {
@@ -30,8 +30,8 @@ func NewFunctionStmt(name *token.Token, params []*token.Token, body *BlockStmt) 
 	return &FuncDeclStmt{Name: name, Params: params, Body: body}
 }
 
-func (f *FuncDeclStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitFuncDeclStmt(f)
+func (f *FuncDeclStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitFuncDeclStmt(f)
 }
 
 type ClassDeclStmt struct {
@@ -48,8 +48,8 @@ func NewClassDeclStmt(name *token.Token, superclass *Variable, methods []*FuncDe
 	}
 }
 
-func (c *ClassDeclStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitClassDeclStmt(c)
+func (c *ClassDeclStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitClassDeclStmt(c)
 }
 
 type ReturnStmt struct {
@@ -61,8 +61,8 @@ func NewReturnStmt(keyword *token.Token, value Expr) *ReturnStmt {
 	return &ReturnStmt{Keyword: keyword, Value: value}
 }
 
-func (r *ReturnStmt) Accept(visit StmtVisitor) {
-	visit.VisitReturnStmt(r)
+func (r *ReturnStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitReturnStmt(r)
 }
 
 type PrintStmt struct {
@@ -73,8 +73,8 @@ func NewPrintStmt(expr Expr) *PrintStmt {
 	return &PrintStmt{expr}
 }
 
-func (p *PrintStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitPrintStmt(p)
+func (p *PrintStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitPrintStmt(p)
 }
 
 type VarDeclStmt struct {
@@ -86,8 +86,8 @@ func NewVarDeclStmt(name *token.Token, initializer Expr) *VarDeclStmt {
 	return &VarDeclStmt{Name: name, Initializer: initializer}
 }
 
-func (v *VarDeclStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitVarDeclStmt(v)
+func (v *VarDeclStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitVarDeclStmt(v)
 }
 
 // BlockStmt 一个Block由多个statement组成，包含变量声明、表达式、print语句等
@@ -99,8 +99,8 @@ func NewBlockStmt(stmts []Stmt) *BlockStmt {
 	return &BlockStmt{Stmts: stmts}
 }
 
-func (b *BlockStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitBlockStmt(b)
+func (b *BlockStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitBlockStmt(b)
 }
 
 type IfStmt struct {
@@ -113,8 +113,8 @@ func NewIfStmt(condition Expr, trueBranch Stmt, elseBranch Stmt) *IfStmt {
 	return &IfStmt{Condition: condition, ThenBranch: trueBranch, ElseBranch: elseBranch}
 }
 
-func (i *IfStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitIfStmt(i)
+func (i *IfStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitIfStmt(i)
 }
 
 type WhileStmt struct {
@@ -126,6 +126,6 @@ func NewWhileStmt(condition Expr, body Stmt) *WhileStmt {
 	return &WhileStmt{Condition: condition, Body: body}
 }
 
-func (w *WhileStmt) Accept(visitor StmtVisitor) {
-	visitor.VisitWhileStmt(w)
+func (w *WhileStmt) Accept(visitor StmtVisitor) error {
+	return visitor.VisitWhileStmt(w)
 }

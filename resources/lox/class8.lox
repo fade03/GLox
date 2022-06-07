@@ -1,0 +1,12 @@
+class A {
+    init() {
+        print "init"
+    }
+
+    hello() {
+        print this;
+    }
+}
+
+print A().init();
+A().hello();

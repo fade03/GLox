@@ -87,7 +87,7 @@ func (s *Scanner) scanToken() {
 			// 假设匹配到的全是identifier，之后再和keyword区分（最长匹配原则）
 			s.addIdentifier()
 		} else {
-			loxerror.Report(s.line, "", "Unexpected character "+string(c))
+			loxerror.ReportLexError(s.line, "", "Unexpected character "+string(c))
 		}
 	}
 }

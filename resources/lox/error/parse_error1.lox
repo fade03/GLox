@@ -1,3 +1,2 @@
-class A {
-    hello() {}
-
+var a = 1
+var b = 2

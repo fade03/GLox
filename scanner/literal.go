@@ -16,7 +16,7 @@ func (s *Scanner) addStrLiteral() {
 	}
 
 	if s.isAtEnd() {
-		loxerror.Report(s.line, "", "Unterminated string.")
+		loxerror.ReportLexError(s.line, "", "Unterminated string.")
 		return
 	}
 	// 注意这里要consume掉最后一个 " 号

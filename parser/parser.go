@@ -65,20 +65,34 @@ func (p *Parser) consume(t token.TokenType, msg string) (*token.Token, error) {
 }
 
 func (p *Parser) synchronize() {
-	// TODO https://github.com/GuoYaxiang/craftinginterpreters_zh/blob/main/content/6.%E8%A7%A3%E6%9E%90%E8%A1%A8%E8%BE%BE%E5%BC%8F.md
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().Type == token.SEMICOLON {
+			return
+		}
+
+		switch p.peek().Type {
+		case token.CLASS, token.FUN, token.VAR, token.FOR, token.IF, token.WHILE, token.PRINT, token.RETURN:
+			return
+		}
+
+		p.advance()
+	}
 }
 
 // Parse 将一个程序（Token序列）解析成多个Stmt
-func (p *Parser) Parse() (stmts []Stmt, err error) {
+func (p *Parser) Parse() (stmts []Stmt) {
 	// 一个程序由多个declaration + EOF组成: program -> declaration* EOF
 	for !p.isAtEnd() {
 		stmt, err := p.declaration()
 		if err != nil {
-			return nil, err
+			println(err.Error())
+			p.synchronize()
+		} else {
+			stmts = append(stmts, stmt)
 		}
-
-		stmts = append(stmts, stmt)
 	}
 
-	return stmts, nil
+	return stmts
 }

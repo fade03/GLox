@@ -28,10 +28,6 @@ func runFile(path string) {
 	sc := string(bytes)
 
 	run(sc)
-
-	if le.HadRuntimeError {
-		os.Exit(-2)
-	}
 }
 
 func run(sc string) {
@@ -45,17 +41,16 @@ func run(sc string) {
 	tokens := s.ScanTokens()
 
 	p := parser.NewParser(tokens)
-	stmts, err := p.Parse()
-	if err != nil {
-		fatal(err.Error(), -1)
+	stmts := p.Parse()
+	if le.HadError {
+		os.Exit(-1)
 	}
 
 	i := interpreter.NewInterpreter()
 	r := resolver.NewResolver(i)
 	r.ResolveStmt(stmts...)
-
-	if le.HadError {
-		return
+	if le.HadResolveError {
+		os.Exit(-2)
 	}
 
 	i.Interpret(stmts)

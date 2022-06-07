@@ -6,58 +6,66 @@ import (
 	"GLox/utils"
 )
 
-func (r *Resolver) VisitExprStmt(stmt *parser.ExprStmt) {
+func (r *Resolver) VisitExprStmt(stmt *parser.ExprStmt) error {
 	r.resolveExpr(stmt.Expr)
+	return nil
 }
 
-func (r *Resolver) VisitPrintStmt(stmt *parser.PrintStmt) {
+func (r *Resolver) VisitPrintStmt(stmt *parser.PrintStmt) error {
 	r.resolveExpr(stmt.Expr)
+	return nil
 }
 
-func (r *Resolver) VisitVarDeclStmt(stmt *parser.VarDeclStmt) {
+func (r *Resolver) VisitVarDeclStmt(stmt *parser.VarDeclStmt) error {
 	r.declare(stmt.Name)
 	if stmt.Initializer != nil {
 		r.resolveExpr(stmt.Initializer)
 	}
 	r.define(stmt.Name)
+	return nil
 }
 
-func (r *Resolver) VisitBlockStmt(stmt *parser.BlockStmt) {
+func (r *Resolver) VisitBlockStmt(stmt *parser.BlockStmt) error {
 	r.beginScope()
 	r.ResolveStmt(stmt.Stmts...)
 	r.endScope()
+	return nil
 }
 
-func (r *Resolver) VisitIfStmt(stmt *parser.IfStmt) {
+func (r *Resolver) VisitIfStmt(stmt *parser.IfStmt) error {
 	r.resolveExpr(stmt.Condition)
 	r.ResolveStmt(stmt.ThenBranch)
 	if stmt.ElseBranch != nil {
 		r.ResolveStmt(stmt.ElseBranch)
 	}
+	return nil
 }
 
-func (r *Resolver) VisitWhileStmt(stmt *parser.WhileStmt) {
+func (r *Resolver) VisitWhileStmt(stmt *parser.WhileStmt) error {
 	r.resolveExpr(stmt.Condition)
 	r.ResolveStmt(stmt.Body)
+	return nil
 }
 
-func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) {
+func (r *Resolver) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) error {
 	r.declare(stmt.Name)
 	r.define(stmt.Name)
 
 	r.resolveFunction(stmt, Function)
+	return nil
 }
 
-func (r *Resolver) VisitReturnStmt(stmt *parser.ReturnStmt) {
+func (r *Resolver) VisitReturnStmt(stmt *parser.ReturnStmt) error {
 	if stmt.Value != nil {
 		if currentCallable == Initializer {
-			panic(le.NewRuntimeError(stmt.Keyword, "Can't return a value from initializer."))
+			le.ReportResolveError(stmt.Keyword, "Can't return a value from initializer.")
 		}
 		r.resolveExpr(stmt.Value)
 	}
+	return nil
 }
 
-func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
+func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) error {
 	var enclosingClass = currentClass
 	currentClass = InClass
 
@@ -69,7 +77,7 @@ func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 	//}
 	if stmt.Superclass != nil {
 		if stmt.Superclass.Name.Lexeme == stmt.Name.Lexeme {
-			panic(le.NewRuntimeError(stmt.Superclass.Name, "A class can't inherit from itself."))
+			le.ReportResolveError(stmt.Superclass.Name, "A class can't inherit from itself.")
 		} else {
 			currentClass = SubClass
 			r.resolveExpr(stmt.Superclass)
@@ -93,4 +101,5 @@ func (r *Resolver) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) {
 	}
 
 	currentClass = enclosingClass
+	return nil
 }

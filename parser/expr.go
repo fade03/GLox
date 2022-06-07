@@ -5,7 +5,7 @@ import (
 )
 
 type Expr interface {
-	Accept(visitor ExprVisitor) interface{}
+	Accept(visitor ExprVisitor) (interface{}, error)
 }
 
 type Binary struct {
@@ -18,7 +18,7 @@ func NewBinary(left Expr, operator *token.Token, right Expr) *Binary {
 	return &Binary{left, operator, right}
 }
 
-func (b *Binary) Accept(visitor ExprVisitor) interface{} {
+func (b *Binary) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitBinaryExpr(b)
 }
 
@@ -30,7 +30,7 @@ func NewGrouping(expression Expr) *Grouping {
 	return &Grouping{expression}
 }
 
-func (g *Grouping) Accept(visitor ExprVisitor) interface{} {
+func (g *Grouping) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitGroupingExpr(g)
 }
 
@@ -42,7 +42,7 @@ func NewLiteral(value interface{}) Expr {
 	return &Literal{value}
 }
 
-func (l *Literal) Accept(visitor ExprVisitor) interface{} {
+func (l *Literal) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitLiteralExpr(l)
 }
 
@@ -55,7 +55,7 @@ func NewUnary(operator *token.Token, right Expr) *Unary {
 	return &Unary{operator, right}
 }
 
-func (u *Unary) Accept(visitor ExprVisitor) interface{} {
+func (u *Unary) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitUnaryExpr(u)
 }
 
@@ -68,7 +68,7 @@ func NewVariable(name *token.Token) *Variable {
 	return &Variable{Name: name}
 }
 
-func (v *Variable) Accept(visitor ExprVisitor) interface{} {
+func (v *Variable) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitVariableExpr(v)
 }
 
@@ -81,7 +81,7 @@ func NewAssign(name *token.Token, value Expr) *Assign {
 	return &Assign{Name: name, Value: value}
 }
 
-func (a *Assign) Accept(visitor ExprVisitor) interface{} {
+func (a *Assign) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitAssignExpr(a)
 }
 
@@ -95,7 +95,7 @@ func NewLogic(left Expr, operator *token.Token, right Expr) *Logic {
 	return &Logic{Left: left, Operator: operator, Right: right}
 }
 
-func (l *Logic) Accept(visitor ExprVisitor) interface{} {
+func (l *Logic) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitLogicExpr(l)
 }
 
@@ -109,7 +109,7 @@ func NewCall(callee Expr, paren *token.Token, arguments []Expr) *Call {
 	return &Call{Callee: callee, Paren: paren, Arguments: arguments}
 }
 
-func (c *Call) Accept(visitor ExprVisitor) interface{} {
+func (c *Call) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitCallExpr(c)
 }
 
@@ -122,7 +122,7 @@ func NewGet(object Expr, attribute *token.Token) *Get {
 	return &Get{Object: object, Attribute: attribute}
 }
 
-func (g *Get) Accept(visitor ExprVisitor) interface{} {
+func (g *Get) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitGetExpr(g)
 }
 
@@ -136,7 +136,7 @@ func NewSet(Object Expr, Attribute *token.Token, Value Expr) *Set {
 	return &Set{Object: Object, Attribute: Attribute, Value: Value}
 }
 
-func (s *Set) Accept(visitor ExprVisitor) interface{} {
+func (s *Set) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitSetExpr(s)
 }
 
@@ -148,7 +148,7 @@ func NewThis(keyword *token.Token) *This {
 	return &This{Keyword: keyword}
 }
 
-func (t *This) Accept(visitor ExprVisitor) interface{} {
+func (t *This) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitThisExpr(t)
 }
 
@@ -161,6 +161,6 @@ func NewSuper(keyword, Identifier *token.Token) *Super {
 	return &Super{Keyword: keyword, Identifier: Identifier}
 }
 
-func (s *Super) Accept(visitor ExprVisitor) interface{} {
+func (s *Super) Accept(visitor ExprVisitor) (interface{}, error) {
 	return visitor.VisitSuperExpr(s)
 }

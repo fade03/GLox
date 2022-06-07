@@ -19,20 +19,21 @@ func isTruth(any interface{}) bool {
 	return true
 }
 
-func doPlus(operator *token.Token, left, right interface{}) interface{} {
+func doPlus(operator *token.Token, left, right interface{}) (interface{}, error) {
 	_, ok1 := left.(float64)
 	_, ok2 := right.(float64)
 	if ok1 && ok2 {
-		return left.(float64) + right.(float64)
+		return left.(float64) + right.(float64), nil
 	}
 
 	_, ok1 = left.(string)
 	_, ok2 = right.(string)
 	if ok1 && ok2 {
-		return left.(string) + right.(string)
+		return left.(string) + right.(string), nil
 	}
 
-	panic(loxerror.NewRuntimeError(operator, "Operands must be two numbers or two strings."))
+	//panic(loxerror.NewRuntimeError(operator, "Operands must be two numbers or two strings."))
+	return nil, loxerror.NewRuntimeError(operator, "Operands must be two numbers or two strings.")
 }
 
 func isEqual(left, right interface{}) bool {
@@ -48,12 +49,13 @@ func isEqual(left, right interface{}) bool {
 	return left == right
 }
 
-func checkNumberOperands(operator *token.Token, operands ...interface{}) {
+func checkNumberOperands(operator *token.Token, operands ...interface{}) error {
 	for _, operand := range operands {
 		if _, ok := operand.(float64); !ok {
-			panic(loxerror.NewRuntimeError(operator, "Operand must be a number."))
+			//panic(loxerror.NewRuntimeError(operator, "Operand must be a number."))
+			return loxerror.NewRuntimeError(operator, "Operand must be a number.")
 		}
 	}
 
-	return
+	return nil
 }

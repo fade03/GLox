@@ -9,10 +9,6 @@ The interpreter is not fully tested, so there may be some bugs, once I find one,
 Usage:
 ```
 cd ./cmd
-go build -o GLox
-./GLox -s "source_file_path"
+go build -o glox
+./glox -s "source_file_path"
 ```
-
----
-
-todo: refactor error handing.
