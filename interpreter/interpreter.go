@@ -3,7 +3,6 @@ package interpreter
 import (
 	"GLox/parser"
 	"GLox/scanner/token"
-	"os"
 	"time"
 )
 
@@ -75,12 +74,13 @@ func (i *Interpreter) lookUpVariable(token *token.Token, expr parser.Expr) (inte
 	return i.environment.lookup(token)
 }
 
-func (i *Interpreter) Interpret(stmts []parser.Stmt) {
+func (i *Interpreter) Interpret(stmts []parser.Stmt) error {
 	for _, stmt := range stmts {
 		err := i.execute(stmt)
 		if err != nil {
-			println(err.Error()) // print RuntimeError
-			os.Exit(0)
+			return err
 		}
 	}
+
+	return nil
 }

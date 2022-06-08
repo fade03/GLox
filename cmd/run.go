@@ -31,12 +31,6 @@ func runFile(path string) {
 }
 
 func run(sc string) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Fatal(err.(error).Error())
-		}
-	}()
-
 	s := scanner.NewScanner(sc)
 	tokens := s.ScanTokens()
 
@@ -53,10 +47,13 @@ func run(sc string) {
 		os.Exit(-2)
 	}
 
-	i.Interpret(stmts)
+	err := i.Interpret(stmts)
+	if err != nil {
+		fatal(err.Error(), 0)
+	}
 }
 
-func fatal(msg string, n int) {
+func fatal(msg string, signal int) {
 	fmt.Println(msg)
-	os.Exit(n)
+	os.Exit(signal)
 }

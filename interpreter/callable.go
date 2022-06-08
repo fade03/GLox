@@ -49,22 +49,6 @@ func NewLoxFunction(declaration *parser.FuncDeclStmt, closure *Environment, isIn
 
 func (lf *LoxFunction) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
 	// 捕获 return 语句
-
-	//defer func() {
-	//	if r := recover(); r != nil {
-	//		switch r.(type) {
-	//		case *Return:
-	//			result = r.(*Return).value
-	//		case *loxerror.RuntimeError:
-	//			log.Fatal(r.(error).Error())
-	//		}
-	//	}
-	//
-	//	if lf.isInitializer {
-	//		result = lf.closure.getAt(0, "this")
-	//	}
-	//}()
-
 	defer func() {
 		if r, ok := recover().(*Return); r != nil && ok {
 			result = r.value
