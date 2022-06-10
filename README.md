@@ -1,6 +1,8 @@
 _🔨 GLox is an interpreter for a toy language "Lox" based on Go._
 
-"Lox" is a toy language for learning, so it may not be very performant.
+![](https://img.shields.io/github/go-mod/go-version/Marszs/GLox)
+
+Lox is a toy language for learning, so it may not be very performant.
 
 It combines functional and object-oriented features, and supports basic features such as arithmetic operations and control flow (you can see some Lox code in `resources/lox` folder).
 
