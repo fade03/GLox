@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"GLox/loxerror"
-	"GLox/scanner/token"
+	"GLox/internal/loxerror"
+	"GLox/internal/scanner/token"
 )
 
 // isTruth Lox中规定nil和false为"假"，其余都为真

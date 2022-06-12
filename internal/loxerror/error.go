@@ -1,7 +1,7 @@
 package loxerror
 
 import (
-	"GLox/scanner/token"
+	"GLox/internal/scanner/token"
 	"fmt"
 )
 

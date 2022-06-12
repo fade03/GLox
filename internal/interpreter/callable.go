@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	"GLox/parser"
+	"GLox/internal/parser"
 )
 
 type LoxCallableFunc func(interpreter *Interpreter, arguments []interface{}) interface{}

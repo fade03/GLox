@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	le "GLox/loxerror"
-	"GLox/scanner/token"
+	le "GLox/internal/loxerror"
+	"GLox/internal/scanner/token"
 )
 
 // Environment 用来管理变量名->值之间的映射

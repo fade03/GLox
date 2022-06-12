@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"GLox/scanner/token"
+	"GLox/internal/scanner/token"
 	"testing"
 )
 

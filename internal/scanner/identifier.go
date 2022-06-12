@@ -1,6 +1,8 @@
 package scanner
 
-import "GLox/scanner/token"
+import (
+	"GLox/internal/scanner/token"
+)
 
 var keywords map[string]token.TokenType
 

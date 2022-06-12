@@ -1,8 +1,8 @@
 package resolver
 
 import (
-	le "GLox/loxerror"
-	"GLox/parser"
+	le "GLox/internal/loxerror"
+	"GLox/internal/parser"
 	"GLox/utils"
 )
 

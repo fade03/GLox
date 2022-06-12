@@ -1,7 +1,7 @@
 package resolver
 
 import (
-	"GLox/scanner/token"
+	"GLox/internal/scanner/token"
 )
 
 type Scope map[string]bool

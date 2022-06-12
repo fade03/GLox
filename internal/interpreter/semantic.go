@@ -1,13 +1,13 @@
 package interpreter
 
 import (
-	le "GLox/loxerror"
-	"GLox/parser"
-	"GLox/scanner/token"
+	le "GLox/internal/loxerror"
+	parser2 "GLox/internal/parser"
+	"GLox/internal/scanner/token"
 	"fmt"
 )
 
-func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) (interface{}, error) {
+func (i *Interpreter) VisitBinaryExpr(expr *parser2.Binary) (interface{}, error) {
 	// (递归)计算左右子表达式的值
 	//lv, rv := i.evaluate(expr.Left), i.evaluate(expr.Right)
 	lv, err := i.evaluate(expr.Left)
@@ -83,16 +83,16 @@ func (i *Interpreter) VisitBinaryExpr(expr *parser.Binary) (interface{}, error) 
 	return nil, nil
 }
 
-func (i *Interpreter) VisitGroupingExpr(expr *parser.Grouping) (interface{}, error) {
+func (i *Interpreter) VisitGroupingExpr(expr *parser2.Grouping) (interface{}, error) {
 	// 计算中间部分的expression即可
 	return i.evaluate(expr.Expression)
 }
 
-func (i *Interpreter) VisitLiteralExpr(expr *parser.Literal) (interface{}, error) {
+func (i *Interpreter) VisitLiteralExpr(expr *parser2.Literal) (interface{}, error) {
 	return expr.Value, nil
 }
 
-func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) (interface{}, error) {
+func (i *Interpreter) VisitUnaryExpr(expr *parser2.Unary) (interface{}, error) {
 	// 先计算右侧表达式的值，如果有运行时错误，直接返回
 	rv, err := i.evaluate(expr.Right)
 	if err != nil {
@@ -114,12 +114,12 @@ func (i *Interpreter) VisitUnaryExpr(expr *parser.Unary) (interface{}, error) {
 	return nil, nil
 }
 
-func (i *Interpreter) VisitVariableExpr(expr *parser.Variable) (interface{}, error) {
+func (i *Interpreter) VisitVariableExpr(expr *parser2.Variable) (interface{}, error) {
 	// return i.environment.lookup(expr.Name)
 	return i.lookUpVariable(expr.Name, expr)
 }
 
-func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) (interface{}, error) {
+func (i *Interpreter) VisitAssignExpr(expr *parser2.Assign) (interface{}, error) {
 	// 计算Assign的语法树上的value节点
 	value, err := i.evaluate(expr.Value)
 	if err != nil {
@@ -143,7 +143,7 @@ func (i *Interpreter) VisitAssignExpr(expr *parser.Assign) (interface{}, error) 
 	return nil, nil
 }
 
-func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) (interface{}, error) {
+func (i *Interpreter) VisitLogicExpr(expr *parser2.Logic) (interface{}, error) {
 	left, err := i.evaluate(expr.Left)
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func (i *Interpreter) VisitLogicExpr(expr *parser.Logic) (interface{}, error) {
 	return i.evaluate(expr.Right)
 }
 
-func (i *Interpreter) VisitCallExpr(expr *parser.Call) (interface{}, error) {
+func (i *Interpreter) VisitCallExpr(expr *parser2.Call) (interface{}, error) {
 	//callee, ok := i.evaluate(expr.Callee).(LoxCallable)
 	calleeI, err := i.evaluate(expr.Callee)
 	if err != nil {
@@ -194,7 +194,7 @@ func (i *Interpreter) VisitCallExpr(expr *parser.Call) (interface{}, error) {
 	return callee.Call(i, args)
 }
 
-func (i *Interpreter) VisitGetExpr(expr *parser.Get) (interface{}, error) {
+func (i *Interpreter) VisitGetExpr(expr *parser2.Get) (interface{}, error) {
 	object, err := i.evaluate(expr.Object)
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func (i *Interpreter) VisitGetExpr(expr *parser.Get) (interface{}, error) {
 	return instance.Get(expr.Attribute)
 }
 
-func (i *Interpreter) VisitSetExpr(expr *parser.Set) (interface{}, error) {
+func (i *Interpreter) VisitSetExpr(expr *parser2.Set) (interface{}, error) {
 	// 计算等号左侧的表达式，找出要复制的属性
 	object, err := i.evaluate(expr.Object)
 	if err != nil {
@@ -233,11 +233,11 @@ func (i *Interpreter) VisitSetExpr(expr *parser.Set) (interface{}, error) {
 	return value, nil
 }
 
-func (i *Interpreter) VisitThisExpr(expr *parser.This) (interface{}, error) {
+func (i *Interpreter) VisitThisExpr(expr *parser2.This) (interface{}, error) {
 	return i.lookUpVariable(expr.Keyword, expr)
 }
 
-func (i *Interpreter) VisitSuperExpr(expr *parser.Super) (interface{}, error) {
+func (i *Interpreter) VisitSuperExpr(expr *parser2.Super) (interface{}, error) {
 	//superclass := i.lookUpVariable(expr.Keyword, expr).(*LoxClass)
 	superclassI, err := i.lookUpVariable(expr.Keyword, expr)
 	if err != nil {
@@ -253,13 +253,13 @@ func (i *Interpreter) VisitSuperExpr(expr *parser.Super) (interface{}, error) {
 
 // ################### Statement #####################
 
-func (i *Interpreter) VisitExprStmt(stmt *parser.ExprStmt) error {
+func (i *Interpreter) VisitExprStmt(stmt *parser2.ExprStmt) error {
 	_, err := i.evaluate(stmt.Expr)
 
 	return err
 }
 
-func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) error {
+func (i *Interpreter) VisitFuncDeclStmt(stmt *parser2.FuncDeclStmt) error {
 	// 结束函数定义的区别在于，会创建一个保存了函数节点引用的新变量
 	function := NewLoxFunction(stmt, i.environment, false)
 	i.environment.define(stmt.Name, function)
@@ -267,7 +267,7 @@ func (i *Interpreter) VisitFuncDeclStmt(stmt *parser.FuncDeclStmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitReturnStmt(stmt *parser.ReturnStmt) (err error) {
+func (i *Interpreter) VisitReturnStmt(stmt *parser2.ReturnStmt) (err error) {
 	var value interface{}
 	if stmt.Value != nil {
 		value, err = i.evaluate(stmt.Value)
@@ -279,7 +279,7 @@ func (i *Interpreter) VisitReturnStmt(stmt *parser.ReturnStmt) (err error) {
 	panic(NewReturn(value))
 }
 
-func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) error {
+func (i *Interpreter) VisitPrintStmt(stmt *parser2.PrintStmt) error {
 	value, err := i.evaluate(stmt.Expr)
 	if err != nil {
 		return err
@@ -291,7 +291,7 @@ func (i *Interpreter) VisitPrintStmt(stmt *parser.PrintStmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) (err error) {
+func (i *Interpreter) VisitVarDeclStmt(stmt *parser2.VarDeclStmt) (err error) {
 	var value interface{}
 	if stmt.Initializer != nil {
 		// 对变量的初始化语句求值
@@ -305,12 +305,12 @@ func (i *Interpreter) VisitVarDeclStmt(stmt *parser.VarDeclStmt) (err error) {
 	return nil
 }
 
-func (i *Interpreter) VisitBlockStmt(stmt *parser.BlockStmt) error {
+func (i *Interpreter) VisitBlockStmt(stmt *parser2.BlockStmt) error {
 	// 把当前作用域的env传入下一个block
 	return i.executeBlock(stmt, NewEnvironment(i.environment))
 }
 
-func (i *Interpreter) VisitIfStmt(stmt *parser.IfStmt) error {
+func (i *Interpreter) VisitIfStmt(stmt *parser2.IfStmt) error {
 	condition, err := i.evaluate(stmt.Condition)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func (i *Interpreter) VisitIfStmt(stmt *parser.IfStmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) error {
+func (i *Interpreter) VisitWhileStmt(stmt *parser2.WhileStmt) error {
 	condition, err := i.evaluate(stmt.Condition)
 	if err != nil {
 		return err
@@ -338,7 +338,7 @@ func (i *Interpreter) VisitWhileStmt(stmt *parser.WhileStmt) error {
 	return nil
 }
 
-func (i *Interpreter) VisitClassDeclStmt(stmt *parser.ClassDeclStmt) error {
+func (i *Interpreter) VisitClassDeclStmt(stmt *parser2.ClassDeclStmt) error {
 	var superclass *LoxClass
 	if stmt.Superclass != nil {
 		tempV, err := i.evaluate(stmt.Superclass)

@@ -1,8 +1,8 @@
 package scanner
 
 import (
-	"GLox/loxerror"
-	"GLox/scanner/token"
+	"GLox/internal/loxerror"
+	"GLox/internal/scanner/token"
 	"strconv"
 )
 

@@ -1,8 +1,8 @@
 package interpreter
 
 import (
-	"GLox/parser"
-	"GLox/scanner/token"
+	parser2 "GLox/internal/parser"
+	"GLox/internal/scanner/token"
 	"time"
 )
 
@@ -10,7 +10,7 @@ import (
 type Interpreter struct {
 	environment *Environment
 	globals     *Environment // globals 存放的是可以全局使用的native函数
-	locals      map[parser.Expr]int
+	locals      map[parser2.Expr]int
 }
 
 func NewInterpreter() *Interpreter {
@@ -23,23 +23,23 @@ func NewInterpreter() *Interpreter {
 		//environment: NewEnvironment(nil),
 		environment: NewEnvironment(g),
 		globals:     g,
-		locals:      make(map[parser.Expr]int),
+		locals:      make(map[parser2.Expr]int),
 	}
 }
 
 // semantic.go
 
 // evaluate 计算表达式的值
-func (i *Interpreter) evaluate(expr parser.Expr) (interface{}, error) {
+func (i *Interpreter) evaluate(expr parser2.Expr) (interface{}, error) {
 	return expr.Accept(i)
 }
 
 // execute 执行一个statement
-func (i *Interpreter) execute(stmt parser.Stmt) error {
+func (i *Interpreter) execute(stmt parser2.Stmt) error {
 	return stmt.Accept(i)
 }
 
-func (i *Interpreter) executeBlock(block *parser.BlockStmt, env *Environment) error {
+func (i *Interpreter) executeBlock(block *parser2.BlockStmt, env *Environment) error {
 	previous := i.environment
 	// 如果execute方法出现异常，defer还会正常执行，之前的作用域会正常恢复
 	defer func() {
@@ -60,11 +60,11 @@ func (i *Interpreter) executeBlock(block *parser.BlockStmt, env *Environment) er
 	return nil
 }
 
-func (i *Interpreter) Resolve(expr parser.Expr, depth int) {
+func (i *Interpreter) Resolve(expr parser2.Expr, depth int) {
 	i.locals[expr] = depth
 }
 
-func (i *Interpreter) lookUpVariable(token *token.Token, expr parser.Expr) (interface{}, error) {
+func (i *Interpreter) lookUpVariable(token *token.Token, expr parser2.Expr) (interface{}, error) {
 	// 现在本地变量表中查询
 	if distance, ok := i.locals[expr]; ok {
 		return i.environment.getAt(distance, token.Lexeme), nil
@@ -74,7 +74,7 @@ func (i *Interpreter) lookUpVariable(token *token.Token, expr parser.Expr) (inte
 	return i.environment.lookup(token)
 }
 
-func (i *Interpreter) Interpret(stmts []parser.Stmt) error {
+func (i *Interpreter) Interpret(stmts []parser2.Stmt) error {
 	for _, stmt := range stmts {
 		err := i.execute(stmt)
 		if err != nil {

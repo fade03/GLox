@@ -1,11 +1,11 @@
 package main
 
 import (
-	"GLox/interpreter"
-	le "GLox/loxerror"
-	"GLox/parser"
-	"GLox/resolver"
-	"GLox/scanner"
+	"GLox/internal/interpreter"
+	le "GLox/internal/loxerror"
+	"GLox/internal/parser"
+	"GLox/internal/resolver"
+	"GLox/internal/scanner"
 	"fmt"
 	"io/ioutil"
 	"log"
