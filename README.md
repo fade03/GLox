@@ -6,7 +6,7 @@ _🔨 GLox is an interpreter for a toy language "Lox" based on Go._
 
 You can find some `Lox` code in `resources/lox` folder.
 
-The interpreter is not fully tested, once I find a bug, it will be fixed as soon as possible.
+The interpreter is not fully tested, once I find a bug, I will fix it as soon as possible.
 
 Usage:
 ```
